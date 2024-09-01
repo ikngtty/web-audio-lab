@@ -1,2 +1,2 @@
-# web-audio-lab
+# Web Audio Lab
 A laboratory for web audio API.

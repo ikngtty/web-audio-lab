@@ -1,0 +1,38 @@
+<html>
+
+<body>
+    <!-- Audio inputs -->
+    <button id="micOnButton">mic on</button>
+    <button id="oscillatorOnButton">oscillator on</button>
+    <input type="file" id="audioFileInput">
+    <span id="audioArea"></span>
+    <hr>
+
+    <!-- Analyzer settings -->
+    minDecibels:
+    <input type="number" id="minDecibelsInput" value="-100" step="10">
+    maxDecibles:
+    <input type="number" id="maxDecibelsInput" value="-30" step="10">
+    <br>
+    smoothingTimeConstant:
+    <input type="number" id="smoothingTimeConstantInput" value="0.8" step="0.1">
+    <br>
+    <button id="setRecommendedValueButton">set recommended value</button>
+    <hr>
+
+    <!-- Monitor -->
+    <button id="measureButton">measure</button><br>
+
+    Frequency Data<br>
+    <canvas id="frequencyDataChart" width="600" height="300"></canvas><br>
+
+    Frequency: <span id="measuredFrequencyText">---</span> Hz<br>
+    <canvas id="frequencyChart" width="600" height="300"></canvas><br>
+
+    Strength: <span id="measuredStrengthText">---</span><br>
+    <canvas id="strengthChart" width="600" height="300"></canvas><br>
+</body>
+
+<script type="text/javascript" src="main.js"></script>
+
+</html>
