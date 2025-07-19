@@ -17,7 +17,7 @@ micOnButton.addEventListener("click", async () => {
         // FIXME: Cannot call multiple times.
         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
-        alert("Failed to get audio stream.");
+        window.alert("Failed to get audio stream.");
         throw err;
     }
     micStreamNode = audioContext.createMediaStreamSource(micStream);
