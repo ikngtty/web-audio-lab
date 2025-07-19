@@ -22,6 +22,8 @@ micOnButton.addEventListener("click", async () => {
     }
     micStreamNode = audioContext.createMediaStreamSource(micStream);
     micStreamNode.connect(audioAnalyserNode);
+    micOnButton.disabled = true;
+    // TODO: mic off button
 });
 
 const oscillatorOnButton = document.getElementById("oscillatorOnButton");
