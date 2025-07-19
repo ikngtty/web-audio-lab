@@ -92,6 +92,8 @@ setRecommendedValueButton.addEventListener("click", () => {
 // Monitor
 //
 
+// TODO: make charts' fields readonly.
+
 class ArrayChartEditor {
     constructor(canvas, valueUpperLimit) {
         this.canvas = canvas;
