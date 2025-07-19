@@ -44,25 +44,26 @@ oscillatorOnButton.addEventListener("click", () => {
 
 const audioFileInput = document.getElementById("audioFileInput");
 const audioArea = document.getElementById("audioArea");
+let audioElement;
 audioFileInput.addEventListener("change", () => {
     // TODO: Validate the audio file.
 
     // TODO: Revoke.
     const audioFileURL = URL.createObjectURL(audioFileInput.files[0]);
 
-    const audioElement = document.createElement("audio");
+    if (audioElement) {
+        audioArea.removeChild(audioElement);
+    }
+
+    audioElement = document.createElement("audio");
     audioElement.controls = true;
     audioElement.src = audioFileURL;
+    audioArea.appendChild(audioElement);
 
     // TODO: Disconnect.
     const inputAudioNode = audioContext.createMediaElementSource(audioElement);
     inputAudioNode.connect(audioAnalyserNode);
     inputAudioNode.connect(audioContext.destination);
-
-    while (audioArea.firstChild) {
-        audioArea.removeChild(audioArea.firstChild);
-    }
-    audioArea.appendChild(audioElement);
 });
 
 //
