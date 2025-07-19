@@ -225,6 +225,18 @@ measureButton.addEventListener("click", async () => {
     measureButton.disabled = false;
 });
 
+const measureAndPlayFileButton = document.getElementById("measureAndPlayFileButton");
+measureAndPlayFileButton.addEventListener("click", async () => {
+    if (!audioElement) {
+        window.alert("No audio file.");
+        return;
+    }
+
+    measureButton.click();
+    audioElement.play();
+    // TODO: disable while playing
+});
+
 //
 // Util
 //
