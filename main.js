@@ -167,7 +167,7 @@ class TimeSeriesChartEditor {
         ctx.arc(x, y,
             4,              // radius
             0, 2 * Math.PI, // angle of start and end
-            true            // clockwise
+            true,           // clockwise
         );
         ctx.fill();
         ctx.closePath();
