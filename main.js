@@ -105,6 +105,7 @@ class ArrayChartEditor {
         ctx.scale(1, -1);
 
         this.valueUpperLimit = valueUpperLimit;
+        this.lastDrawnDate = null;
     }
 
     draw(arr) {
@@ -120,6 +121,8 @@ class ArrayChartEditor {
             const height = Math.min(value / this.valueUpperLimit, 1) * canvas.height;
             ctx.fillRect(x, y, width, height);
         });
+
+        this.lastDrawnDate = new Date();
     }
 }
 
@@ -205,7 +208,6 @@ measureButton.addEventListener("click", async () => {
     frequencyChartEditor.begin(measureTime);
     strengthChartEditor.clear();
     strengthChartEditor.begin(measureTime);
-    let lastDrawTimeOfFrequencyDataChart = 0;
     await repeatFor(measureTime, elapsedTime => {
         const {
             frequencyData,
@@ -218,9 +220,9 @@ measureButton.addEventListener("click", async () => {
         strengthChartEditor.drawPoint(elapsedTime, strength);
         measuredStrengthText.textContent = strength.toString();
         // Reduce refresh rate to watch the chart carefully.
-        if (elapsedTime - lastDrawTimeOfFrequencyDataChart >= 400) {
+        if (!frequencyDataChartEditor.lastDrawnDate ||
+            Date.now() - frequencyDataChartEditor.lastDrawnDate > 400) {
             frequencyDataChartEditor.draw(frequencyData);
-            lastDrawTimeOfFrequencyDataChart = elapsedTime;
         }
     });
 
