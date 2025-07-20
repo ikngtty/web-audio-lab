@@ -189,7 +189,7 @@ class TimeSeriesChartEditor {
 const frequencyChartEditor = new TimeSeriesChartEditor(frequencyChart, 2400);
 const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
 
-class TimeSeriesDataStore extends EventTarget {
+class StateTimeSeries extends EventTarget {
     constructor() {
         super();
         this._dataPoints = [];
@@ -231,13 +231,13 @@ class TimeSeriesDataStore extends EventTarget {
         this.dispatchEvent(new CustomEvent('cleared'));
     }
 }
-const measurementDataStore = new TimeSeriesDataStore();
-measurementDataStore.addEventListener('began', (event) => {
+const stateMeasurements = new StateTimeSeries();
+stateMeasurements.addEventListener('began', (event) => {
     const { estimatedDuration } = event.detail;
     frequencyChartEditor.begin(estimatedDuration);
     strengthChartEditor.begin(estimatedDuration);
 });
-measurementDataStore.addEventListener('dataPointAdded', (event) => {
+stateMeasurements.addEventListener('dataPointAdded', (event) => {
     const { dataPoint } = event.detail;
     const { elapsedTime, data } = dataPoint;
     const { frequencyData, frequency, strength } = data;
@@ -252,7 +252,7 @@ measurementDataStore.addEventListener('dataPointAdded', (event) => {
         frequencyDataChartEditor.draw(frequencyData);
     }
 });
-measurementDataStore.addEventListener('cleared', () => {
+stateMeasurements.addEventListener('cleared', () => {
     frequencyChartEditor.clear();
     measuredFrequencyText.textContent = '';
     strengthChartEditor.clear();
@@ -270,17 +270,17 @@ measureButton.addEventListener("click", async () => {
         // TODO
     }
 
-    measurementDataStore.clear();
+    stateMeasurements.clear();
 
     const measureTime = 10 * 1000;  // milliseconds
-    measurementDataStore.begin(measureTime);
+    stateMeasurements.begin(measureTime);
 
     await repeatFor(measureTime, elapsedTime => {
         const analysisResult = analyzeCurrentSound(audioAnalyserNode);
-        measurementDataStore.addDataPoint(elapsedTime, analysisResult);
+        stateMeasurements.addDataPoint(elapsedTime, analysisResult);
     });
 
-    measurementDataStore.end(measureTime);  // TODO: Use the actual end time.
+    stateMeasurements.end(measureTime); // TODO: Use the actual end time.
 
     measureButton.disabled = false;
 });
