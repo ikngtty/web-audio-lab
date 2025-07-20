@@ -192,6 +192,80 @@ const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
 const measuredFrequencyText = document.getElementById("measuredFrequencyText");
 const measuredStrengthText = document.getElementById("measuredStrengthText");
 
+class TimeSeriesDataStore extends EventTarget {
+    constructor() {
+        super();
+        this._dataPoints = [];
+        this._estimatedDuration = null;
+    }
+
+    begin(estimatedDuration) {
+        this._estimatedDuration = estimatedDuration;
+        this.dispatchEvent(new CustomEvent('began', {
+            detail: { estimatedDuration },
+        }));
+    }
+
+    addDataPoint(elapsedTime, data) {
+        const dataPoint = { elapsedTime, data };
+        this._dataPoints.push(dataPoint);
+        this.dispatchEvent(new CustomEvent('dataPointAdded', {
+            detail: { dataPoint },
+        }));
+    }
+
+    end(elapsedTime) {
+        this.dispatchEvent(new CustomEvent('ended', {
+            detail: { elapsedTime },
+        }));
+    }
+
+    get dataPoints() {
+        return this._dataPoints;
+    }
+
+    get estimatedDuration() {
+        return this._estimatedDuration;
+    }
+
+    clear() {
+        this._dataPoints = [];
+        this._estimatedDuration = null;
+        this.dispatchEvent(new CustomEvent('cleared'));
+    }
+}
+
+const measurementDataStore = new TimeSeriesDataStore();
+
+measurementDataStore.addEventListener('began', (event) => {
+    const { estimatedDuration } = event.detail;
+    frequencyChartEditor.begin(estimatedDuration);
+    strengthChartEditor.begin(estimatedDuration);
+});
+
+measurementDataStore.addEventListener('dataPointAdded', (event) => {
+    const { dataPoint } = event.detail;
+    const { elapsedTime, data } = dataPoint;
+    const { frequencyData, frequency, strength } = data;
+
+    frequencyChartEditor.drawPoint(elapsedTime, frequency);
+    measuredFrequencyText.textContent = frequency.toString();
+    strengthChartEditor.drawPoint(elapsedTime, strength);
+    measuredStrengthText.textContent = strength.toString();
+    // Reduce refresh rate to watch the chart carefully.
+    if (!frequencyDataChartEditor.lastDrawnDate ||
+        Date.now() - frequencyDataChartEditor.lastDrawnDate > 400) {
+        frequencyDataChartEditor.draw(frequencyData);
+    }
+});
+
+measurementDataStore.addEventListener('cleared', () => {
+    frequencyChartEditor.clear();
+    measuredFrequencyText.textContent = '';
+    strengthChartEditor.clear();
+    measuredStrengthText.textContent = '';
+});
+
 const measureButton = document.getElementById("measureButton");
 measureButton.addEventListener("click", async () => {
     measureButton.disabled = true;
@@ -203,28 +277,17 @@ measureButton.addEventListener("click", async () => {
         // TODO
     }
 
-    const measureTime = 10 * 1000;  // milliseconds
-    frequencyChartEditor.clear();
-    frequencyChartEditor.begin(measureTime);
-    strengthChartEditor.clear();
-    strengthChartEditor.begin(measureTime);
-    await repeatFor(measureTime, elapsedTime => {
-        const {
-            frequencyData,
-            frequency,
-            strength,
-        } = analyzeCurrentSound(audioAnalyserNode);
+    measurementDataStore.clear();
 
-        frequencyChartEditor.drawPoint(elapsedTime, frequency);
-        measuredFrequencyText.textContent = frequency.toString();
-        strengthChartEditor.drawPoint(elapsedTime, strength);
-        measuredStrengthText.textContent = strength.toString();
-        // Reduce refresh rate to watch the chart carefully.
-        if (!frequencyDataChartEditor.lastDrawnDate ||
-            Date.now() - frequencyDataChartEditor.lastDrawnDate > 400) {
-            frequencyDataChartEditor.draw(frequencyData);
-        }
+    const measureTime = 10 * 1000;  // milliseconds
+    measurementDataStore.begin(measureTime);
+
+    await repeatFor(measureTime, elapsedTime => {
+        const analysisResult = analyzeCurrentSound(audioAnalyserNode);
+        measurementDataStore.addDataPoint(elapsedTime, analysisResult);
     });
+
+    measurementDataStore.end(measureTime);  // TODO: Use the actual end time.
 
     measureButton.disabled = false;
 });
