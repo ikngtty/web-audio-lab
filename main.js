@@ -42,9 +42,9 @@ oscillatorOnButton.addEventListener("click", () => {
     }, 2000); // milliseconds
 });
 
-const audioFileInput = document.getElementById("audioFileInput");
-const audioArea = document.getElementById("audioArea");
 let audioElement;
+const audioArea = document.getElementById("audioArea");
+const audioFileInput = document.getElementById("audioFileInput");
 audioFileInput.addEventListener("change", () => {
     // TODO: Validate the audio file.
 
@@ -92,6 +92,12 @@ setRecommendedValueButton.addEventListener("click", () => {
 // Monitor
 //
 
+const frequencyDataChart = document.getElementById("frequencyDataChart");
+const frequencyChart = document.getElementById("frequencyChart");
+const measuredFrequencyText = document.getElementById("measuredFrequencyText");
+const strengthChart = document.getElementById("strengthChart");
+const measuredStrengthText = document.getElementById("measuredStrengthText");
+
 // TODO: make charts' fields readonly.
 
 class ArrayChartEditor {
@@ -125,6 +131,7 @@ class ArrayChartEditor {
         this.lastDrawnDate = new Date();
     }
 }
+const frequencyDataChartEditor = new ArrayChartEditor(frequencyDataChart, 255);
 
 class TimeSeriesChartEditor {
     constructor(canvas, valueUpperLimit) {
@@ -178,19 +185,9 @@ class TimeSeriesChartEditor {
         ctx.closePath();
     }
 }
-
-const frequencyDataChart = document.getElementById("frequencyDataChart");
-const frequencyDataChartEditor = new ArrayChartEditor(frequencyDataChart, 255);
-
-const frequencyChart = document.getElementById("frequencyChart");
 // TODO: Decide the upper limit.
 const frequencyChartEditor = new TimeSeriesChartEditor(frequencyChart, 2400);
-
-const strengthChart = document.getElementById("strengthChart");
 const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
-
-const measuredFrequencyText = document.getElementById("measuredFrequencyText");
-const measuredStrengthText = document.getElementById("measuredStrengthText");
 
 class TimeSeriesDataStore extends EventTarget {
     constructor() {
@@ -234,15 +231,12 @@ class TimeSeriesDataStore extends EventTarget {
         this.dispatchEvent(new CustomEvent('cleared'));
     }
 }
-
 const measurementDataStore = new TimeSeriesDataStore();
-
 measurementDataStore.addEventListener('began', (event) => {
     const { estimatedDuration } = event.detail;
     frequencyChartEditor.begin(estimatedDuration);
     strengthChartEditor.begin(estimatedDuration);
 });
-
 measurementDataStore.addEventListener('dataPointAdded', (event) => {
     const { dataPoint } = event.detail;
     const { elapsedTime, data } = dataPoint;
@@ -258,7 +252,6 @@ measurementDataStore.addEventListener('dataPointAdded', (event) => {
         frequencyDataChartEditor.draw(frequencyData);
     }
 });
-
 measurementDataStore.addEventListener('cleared', () => {
     frequencyChartEditor.clear();
     measuredFrequencyText.textContent = '';
