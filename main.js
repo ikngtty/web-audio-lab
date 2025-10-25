@@ -319,6 +319,52 @@ measureAndPlayFileButton.addEventListener("click", async () => {
 });
 
 //
+// Inspector
+//
+
+const frequencyDataOfSelectedSoundChart = document.getElementById(
+  "frequencyDataOfSelectedSoundChart"
+);
+const frequencyDataOfSelectedSoundChartEditor = new ArrayChartEditor(
+  frequencyDataOfSelectedSoundChart,
+  255
+);
+
+class StateSelection extends EventTarget {
+  constructor() {
+    super();
+    this._value = null;
+  }
+
+  set value(value) {
+    this._value = value;
+    this.dispatchEvent(new CustomEvent("valueChanged", { detail: { value } }));
+  }
+
+  get value() {
+    return this._value;
+  }
+}
+const stateSoundIndexSelection = new StateSelection();
+stateSoundIndexSelection.addEventListener("valueChanged", (event) => {
+  const { value: soundIndex } = event.detail;
+  const frequencyData =
+    stateMeasurements.dataPoints[soundIndex].data.frequencyData;
+  frequencyDataOfSelectedSoundChartEditor.draw(frequencyData);
+});
+
+const selectedSoundIndexInput = document.getElementById(
+  "selectedSoundIndexInput"
+);
+const selectSoundButton = document.getElementById("selectSoundButton");
+selectSoundButton.addEventListener("click", () => {
+  // TODO: Disable before measuring.
+  // TODO: Validate.
+  const soundIndex = Number(selectedSoundIndexInput.value);
+  stateSoundIndexSelection.value = soundIndex;
+});
+
+//
 // Util
 //
 
