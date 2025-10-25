@@ -277,8 +277,13 @@ stateMeasurements.addEventListener("cleared", () => {
 });
 
 const measureButton = document.getElementById("measureButton");
+const measureAndPlayFileButton = document.getElementById(
+  "measureAndPlayFileButton"
+);
 measureButton.addEventListener("click", async () => {
   measureButton.disabled = true;
+  // HACK: It is disgusting that measureButton knows measureAndPlayFileButton.
+  measureAndPlayFileButton.disabled = true;
 
   try {
     reflectSettings(audioAnalyserNode);
@@ -300,11 +305,9 @@ measureButton.addEventListener("click", async () => {
   stateMeasurements.end(measureTime); // TODO: Use the actual end time.
 
   measureButton.disabled = false;
+  // HACK: It is disgusting that measureButton knows measureAndPlayFileButton.
+  measureAndPlayFileButton.disabled = false;
 });
-
-const measureAndPlayFileButton = document.getElementById(
-  "measureAndPlayFileButton"
-);
 measureAndPlayFileButton.addEventListener("click", async () => {
   if (!audioElement) {
     window.alert("No audio file.");
@@ -313,7 +316,6 @@ measureAndPlayFileButton.addEventListener("click", async () => {
 
   measureButton.click();
   audioElement.play();
-  // TODO: disable while playing
 });
 
 //
