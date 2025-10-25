@@ -13,57 +13,57 @@ let micStream;
 let micStreamNode;
 const micOnButton = document.getElementById("micOnButton");
 micOnButton.addEventListener("click", async () => {
-    try {
-        // FIXME: Cannot call multiple times.
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (err) {
-        window.alert("Failed to get audio stream.");
-        throw err;
-    }
-    micStreamNode = audioContext.createMediaStreamSource(micStream);
-    micStreamNode.connect(audioAnalyserNode);
-    micOnButton.disabled = true;
-    // TODO: mic off button
+  try {
+    // FIXME: Cannot call multiple times.
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    window.alert("Failed to get audio stream.");
+    throw err;
+  }
+  micStreamNode = audioContext.createMediaStreamSource(micStream);
+  micStreamNode.connect(audioAnalyserNode);
+  micOnButton.disabled = true;
+  // TODO: mic off button
 });
 
 const oscillatorOnButton = document.getElementById("oscillatorOnButton");
 oscillatorOnButton.addEventListener("click", () => {
-    oscillatorOnButton.disabled = true;
+  oscillatorOnButton.disabled = true;
 
-    const oscillatorNode = audioContext.createOscillator();
-    oscillatorNode.connect(audioContext.destination);
-    oscillatorNode.connect(audioAnalyserNode);
-    oscillatorNode.start();
-    setTimeout(() => {
-        oscillatorNode.stop();
-        oscillatorNode.disconnect();
+  const oscillatorNode = audioContext.createOscillator();
+  oscillatorNode.connect(audioContext.destination);
+  oscillatorNode.connect(audioAnalyserNode);
+  oscillatorNode.start();
+  setTimeout(() => {
+    oscillatorNode.stop();
+    oscillatorNode.disconnect();
 
-        oscillatorOnButton.disabled = false;
-    }, 2000); // milliseconds
+    oscillatorOnButton.disabled = false;
+  }, 2000); // milliseconds
 });
 
 let audioElement;
 const audioArea = document.getElementById("audioArea");
 const audioFileInput = document.getElementById("audioFileInput");
 audioFileInput.addEventListener("change", () => {
-    // TODO: Validate the audio file.
+  // TODO: Validate the audio file.
 
-    // TODO: Revoke.
-    const audioFileURL = URL.createObjectURL(audioFileInput.files[0]);
+  // TODO: Revoke.
+  const audioFileURL = URL.createObjectURL(audioFileInput.files[0]);
 
-    if (audioElement) {
-        audioArea.removeChild(audioElement);
-    }
+  if (audioElement) {
+    audioArea.removeChild(audioElement);
+  }
 
-    audioElement = document.createElement("audio");
-    audioElement.controls = true;
-    audioElement.src = audioFileURL;
-    audioArea.appendChild(audioElement);
+  audioElement = document.createElement("audio");
+  audioElement.controls = true;
+  audioElement.src = audioFileURL;
+  audioArea.appendChild(audioElement);
 
-    // TODO: Disconnect.
-    const inputAudioNode = audioContext.createMediaElementSource(audioElement);
-    inputAudioNode.connect(audioAnalyserNode);
-    inputAudioNode.connect(audioContext.destination);
+  // TODO: Disconnect.
+  const inputAudioNode = audioContext.createMediaElementSource(audioElement);
+  inputAudioNode.connect(audioAnalyserNode);
+  inputAudioNode.connect(audioContext.destination);
 });
 
 //
@@ -72,20 +72,26 @@ audioFileInput.addEventListener("change", () => {
 
 const minDecibelsInput = document.getElementById("minDecibelsInput");
 const maxDecibelsInput = document.getElementById("maxDecibelsInput");
-const smoothingTimeConstantInput = document.getElementById("smoothingTimeConstantInput");
+const smoothingTimeConstantInput = document.getElementById(
+  "smoothingTimeConstantInput"
+);
 
 function reflectSettings(audioAnalyserNode) {
-    // TODO: Validate.
-    audioAnalyserNode.minDecibels = Number(minDecibelsInput.value);
-    audioAnalyserNode.maxDecibels = Number(maxDecibelsInput.value);
-    audioAnalyserNode.smoothingTimeConstant = Number(smoothingTimeConstantInput.value);
+  // TODO: Validate.
+  audioAnalyserNode.minDecibels = Number(minDecibelsInput.value);
+  audioAnalyserNode.maxDecibels = Number(maxDecibelsInput.value);
+  audioAnalyserNode.smoothingTimeConstant = Number(
+    smoothingTimeConstantInput.value
+  );
 }
 
-const setRecommendedValueButton = document.getElementById("setRecommendedValueButton");
+const setRecommendedValueButton = document.getElementById(
+  "setRecommendedValueButton"
+);
 setRecommendedValueButton.addEventListener("click", () => {
-    minDecibelsInput.value = -40;
-    maxDecibelsInput.value = 0;
-    smoothingTimeConstantInput.value = 0;
+  minDecibelsInput.value = -40;
+  maxDecibelsInput.value = 0;
+  smoothingTimeConstantInput.value = 0;
 });
 
 //
@@ -101,200 +107,213 @@ const measuredStrengthText = document.getElementById("measuredStrengthText");
 // TODO: make charts' fields readonly.
 
 class ArrayChartEditor {
-    constructor(canvas, valueUpperLimit) {
-        this.canvas = canvas;
-        // TODO: Check for canvas support (= whether getContext is not null).
-        this.canvasContext = canvas.getContext("2d");
-        // Use Cartesian coordinate system for ease of description.
-        const ctx = this.canvasContext;
-        ctx.translate(0, canvas.height);
-        ctx.scale(1, -1);
+  constructor(canvas, valueUpperLimit) {
+    this.canvas = canvas;
+    // TODO: Check for canvas support (= whether getContext is not null).
+    this.canvasContext = canvas.getContext("2d");
+    // Use Cartesian coordinate system for ease of description.
+    const ctx = this.canvasContext;
+    ctx.translate(0, canvas.height);
+    ctx.scale(1, -1);
 
-        this.valueUpperLimit = valueUpperLimit;
-        this.lastDrawnDate = null;
-    }
+    this.valueUpperLimit = valueUpperLimit;
+    this.lastDrawnDate = null;
+  }
 
-    draw(arr) {
-        const canvas = this.canvas;
-        const ctx = this.canvasContext;
+  draw(arr) {
+    const canvas = this.canvas;
+    const ctx = this.canvasContext;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const y = 0;
-        const width = canvas.width / arr.length;
-        arr.forEach((value, index) => {
-            const x = width * index;
-            const height = Math.min(value / this.valueUpperLimit, 1) * canvas.height;
-            ctx.fillRect(x, y, width, height);
-        });
+    const y = 0;
+    const width = canvas.width / arr.length;
+    arr.forEach((value, index) => {
+      const x = width * index;
+      const height = Math.min(value / this.valueUpperLimit, 1) * canvas.height;
+      ctx.fillRect(x, y, width, height);
+    });
 
-        this.lastDrawnDate = new Date();
-    }
+    this.lastDrawnDate = new Date();
+  }
 }
 const frequencyDataChartEditor = new ArrayChartEditor(frequencyDataChart, 255);
 
 class TimeSeriesChartEditor {
-    constructor(canvas, valueUpperLimit) {
-        this.canvas = canvas;
-        // TODO: Check for canvas support (= whether getContext is not null).
-        this.canvasContext = canvas.getContext("2d");
-        // Use Cartesian coordinate system for ease of description.
-        const ctx = this.canvasContext;
-        ctx.translate(0, canvas.height);
-        ctx.scale(1, -1);
+  constructor(canvas, valueUpperLimit) {
+    this.canvas = canvas;
+    // TODO: Check for canvas support (= whether getContext is not null).
+    this.canvasContext = canvas.getContext("2d");
+    // Use Cartesian coordinate system for ease of description.
+    const ctx = this.canvasContext;
+    ctx.translate(0, canvas.height);
+    ctx.scale(1, -1);
 
-        this.valueUpperLimit = valueUpperLimit;
-        this.isActive = false;
-        this.timeUpperLimit = null;
+    this.valueUpperLimit = valueUpperLimit;
+    this.isActive = false;
+    this.timeUpperLimit = null;
+  }
+
+  clear() {
+    const ctx = this.canvasContext;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.isActive = false;
+  }
+
+  begin(timeUpperLimit) {
+    if (this.isActive) {
+      throw new Error("The chart should not be active before beginning.");
     }
 
-    clear() {
-        const ctx = this.canvasContext;
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.timeUpperLimit = timeUpperLimit;
+    this.isActive = true;
+  }
 
-        this.isActive = false;
+  drawPoint(time, value) {
+    if (!this.isActive) {
+      throw new Error("The chart should be active.");
+    }
+    if (time > this.timeUpperLimit) {
+      throw new Error("The time is over the limit.");
     }
 
-    begin(timeUpperLimit) {
-        if (this.isActive) {
-            throw new Error("The chart should not be active before beginning.");
-        }
-
-        this.timeUpperLimit = timeUpperLimit;
-        this.isActive = true;
-    }
-
-    drawPoint(time, value) {
-        if (!this.isActive) {
-            throw new Error("The chart should be active.");
-        }
-        if (time > this.timeUpperLimit) {
-            throw new Error("The time is over the limit.");
-        }
-
-        const x = time / this.timeUpperLimit * this.canvas.width;
-        const y = Math.min(value / this.valueUpperLimit, 1) * this.canvas.height;
-        const ctx = this.canvasContext;
-        ctx.beginPath();
-        ctx.arc(x, y,
-            4,              // radius
-            0, 2 * Math.PI, // angle of start and end
-            true,           // clockwise
-        );
-        ctx.fill();
-        ctx.closePath();
-    }
+    const x = (time / this.timeUpperLimit) * this.canvas.width;
+    const y = Math.min(value / this.valueUpperLimit, 1) * this.canvas.height;
+    const ctx = this.canvasContext;
+    ctx.beginPath();
+    ctx.arc(
+      x,
+      y,
+      4, // radius
+      0,
+      2 * Math.PI, // angle of start and end
+      true // clockwise
+    );
+    ctx.fill();
+    ctx.closePath();
+  }
 }
 // TODO: Decide the upper limit.
 const frequencyChartEditor = new TimeSeriesChartEditor(frequencyChart, 2400);
 const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
 
 class StateTimeSeries extends EventTarget {
-    constructor() {
-        super();
-        this._dataPoints = [];
-        this._estimatedDuration = null;
-    }
+  constructor() {
+    super();
+    this._dataPoints = [];
+    this._estimatedDuration = null;
+  }
 
-    begin(estimatedDuration) {
-        this._estimatedDuration = estimatedDuration;
-        this.dispatchEvent(new CustomEvent('began', {
-            detail: { estimatedDuration },
-        }));
-    }
+  begin(estimatedDuration) {
+    this._estimatedDuration = estimatedDuration;
+    this.dispatchEvent(
+      new CustomEvent("began", {
+        detail: { estimatedDuration },
+      })
+    );
+  }
 
-    addDataPoint(elapsedTime, data) {
-        const dataPoint = { elapsedTime, data };
-        this._dataPoints.push(dataPoint);
-        this.dispatchEvent(new CustomEvent('dataPointAdded', {
-            detail: { dataPoint },
-        }));
-    }
+  addDataPoint(elapsedTime, data) {
+    const dataPoint = { elapsedTime, data };
+    this._dataPoints.push(dataPoint);
+    this.dispatchEvent(
+      new CustomEvent("dataPointAdded", {
+        detail: { dataPoint },
+      })
+    );
+  }
 
-    end(elapsedTime) {
-        this.dispatchEvent(new CustomEvent('ended', {
-            detail: { elapsedTime },
-        }));
-    }
+  end(elapsedTime) {
+    this.dispatchEvent(
+      new CustomEvent("ended", {
+        detail: { elapsedTime },
+      })
+    );
+  }
 
-    get dataPoints() {
-        return this._dataPoints;
-    }
+  get dataPoints() {
+    return this._dataPoints;
+  }
 
-    get estimatedDuration() {
-        return this._estimatedDuration;
-    }
+  get estimatedDuration() {
+    return this._estimatedDuration;
+  }
 
-    clear() {
-        this._dataPoints = [];
-        this._estimatedDuration = null;
-        this.dispatchEvent(new CustomEvent('cleared'));
-    }
+  clear() {
+    this._dataPoints = [];
+    this._estimatedDuration = null;
+    this.dispatchEvent(new CustomEvent("cleared"));
+  }
 }
 const stateMeasurements = new StateTimeSeries();
-stateMeasurements.addEventListener('began', (event) => {
-    const { estimatedDuration } = event.detail;
-    frequencyChartEditor.begin(estimatedDuration);
-    strengthChartEditor.begin(estimatedDuration);
+stateMeasurements.addEventListener("began", (event) => {
+  const { estimatedDuration } = event.detail;
+  frequencyChartEditor.begin(estimatedDuration);
+  strengthChartEditor.begin(estimatedDuration);
 });
-stateMeasurements.addEventListener('dataPointAdded', (event) => {
-    const { dataPoint } = event.detail;
-    const { elapsedTime, data } = dataPoint;
-    const { frequencyData, frequency, strength } = data;
+stateMeasurements.addEventListener("dataPointAdded", (event) => {
+  const { dataPoint } = event.detail;
+  const { elapsedTime, data } = dataPoint;
+  const { frequencyData, frequency, strength } = data;
 
-    frequencyChartEditor.drawPoint(elapsedTime, frequency);
-    measuredFrequencyText.textContent = frequency.toString();
-    strengthChartEditor.drawPoint(elapsedTime, strength);
-    measuredStrengthText.textContent = strength.toString();
-    // Reduce refresh rate to watch the chart carefully.
-    if (!frequencyDataChartEditor.lastDrawnDate ||
-        Date.now() - frequencyDataChartEditor.lastDrawnDate > 400) {
-        frequencyDataChartEditor.draw(frequencyData);
-    }
+  frequencyChartEditor.drawPoint(elapsedTime, frequency);
+  measuredFrequencyText.textContent = frequency.toString();
+  strengthChartEditor.drawPoint(elapsedTime, strength);
+  measuredStrengthText.textContent = strength.toString();
+  // Reduce refresh rate to watch the chart carefully.
+  if (
+    !frequencyDataChartEditor.lastDrawnDate ||
+    Date.now() - frequencyDataChartEditor.lastDrawnDate > 400
+  ) {
+    frequencyDataChartEditor.draw(frequencyData);
+  }
 });
-stateMeasurements.addEventListener('cleared', () => {
-    frequencyChartEditor.clear();
-    measuredFrequencyText.textContent = '';
-    strengthChartEditor.clear();
-    measuredStrengthText.textContent = '';
+stateMeasurements.addEventListener("cleared", () => {
+  frequencyChartEditor.clear();
+  measuredFrequencyText.textContent = "";
+  strengthChartEditor.clear();
+  measuredStrengthText.textContent = "";
 });
 
 const measureButton = document.getElementById("measureButton");
 measureButton.addEventListener("click", async () => {
-    measureButton.disabled = true;
+  measureButton.disabled = true;
 
-    try {
-        reflectSettings(audioAnalyserNode);
-    } catch (err) {
-        window.alert(err);
-        // TODO
-    }
+  try {
+    reflectSettings(audioAnalyserNode);
+  } catch (err) {
+    window.alert(err);
+    // TODO
+  }
 
-    stateMeasurements.clear();
+  stateMeasurements.clear();
 
-    const measureTime = 10 * 1000;  // milliseconds
-    stateMeasurements.begin(measureTime);
+  const measureTime = 10 * 1000; // milliseconds
+  stateMeasurements.begin(measureTime);
 
-    await repeatFor(measureTime, elapsedTime => {
-        const analysisResult = analyzeCurrentSound(audioAnalyserNode);
-        stateMeasurements.addDataPoint(elapsedTime, analysisResult);
-    });
+  await repeatFor(measureTime, (elapsedTime) => {
+    const analysisResult = analyzeCurrentSound(audioAnalyserNode);
+    stateMeasurements.addDataPoint(elapsedTime, analysisResult);
+  });
 
-    stateMeasurements.end(measureTime); // TODO: Use the actual end time.
+  stateMeasurements.end(measureTime); // TODO: Use the actual end time.
 
-    measureButton.disabled = false;
+  measureButton.disabled = false;
 });
 
-const measureAndPlayFileButton = document.getElementById("measureAndPlayFileButton");
+const measureAndPlayFileButton = document.getElementById(
+  "measureAndPlayFileButton"
+);
 measureAndPlayFileButton.addEventListener("click", async () => {
-    if (!audioElement) {
-        window.alert("No audio file.");
-        return;
-    }
+  if (!audioElement) {
+    window.alert("No audio file.");
+    return;
+  }
 
-    measureButton.click();
-    audioElement.play();
-    // TODO: disable while playing
+  measureButton.click();
+  audioElement.play();
+  // TODO: disable while playing
 });
 
 //
@@ -302,62 +321,61 @@ measureAndPlayFileButton.addEventListener("click", async () => {
 //
 
 function analyzeCurrentSound(audioAnalyserNode) {
-    const sampleRate = audioAnalyserNode.context.sampleRate;
-    const frequencyLowerBound = 0;
-    const frequencyUpperBound = sampleRate / 2;
-    const frequencyRange = frequencyUpperBound - frequencyLowerBound;
-    const frequencyBinCount = audioAnalyserNode.frequencyBinCount;
+  const sampleRate = audioAnalyserNode.context.sampleRate;
+  const frequencyLowerBound = 0;
+  const frequencyUpperBound = sampleRate / 2;
+  const frequencyRange = frequencyUpperBound - frequencyLowerBound;
+  const frequencyBinCount = audioAnalyserNode.frequencyBinCount;
 
-    const frequencyData = new Uint8Array(frequencyBinCount);
-    audioAnalyserNode.getByteFrequencyData(frequencyData);
+  const frequencyData = new Uint8Array(frequencyBinCount);
+  audioAnalyserNode.getByteFrequencyData(frequencyData);
 
-    const frequencyPeekIndex = getIndexOfMax(frequencyData);
-    const frequency = frequencyLowerBound +
-        frequencyRange / frequencyBinCount * (frequencyPeekIndex + 0.5);
-    const strength = frequencyData[frequencyPeekIndex];
-    return {
-        frequencyData,
-        frequency,
-        strength,
-    };
+  const frequencyPeekIndex = getIndexOfMax(frequencyData);
+  const frequency =
+    frequencyLowerBound +
+    (frequencyRange / frequencyBinCount) * (frequencyPeekIndex + 0.5);
+  const strength = frequencyData[frequencyPeekIndex];
+  return {
+    frequencyData,
+    frequency,
+    strength,
+  };
 }
 
 function getIndexOfMax(arr) {
-    if (arr.length == 0) {
-        throw new TypeError("Empty array.");
+  if (arr.length == 0) {
+    throw new TypeError("Empty array.");
+  }
+
+  let [maxI, maxV] = [0, arr[0]];
+  arr.forEach((v, i) => {
+    if (v > maxV) {
+      [maxI, maxV] = [i, v];
     }
+  });
 
-    let [maxI, maxV] = [0, arr[0]];
-    arr.forEach((v, i) => {
-        if (v > maxV) {
-            [maxI, maxV] = [i, v];
-        }
-    });
-
-    return maxI;
+  return maxI;
 }
 
 function repeatFor(
-    duration,   // milliseconds
-    callback,   // (elapsedTime) => ()
+  duration, // milliseconds
+  callback // (elapsedTime) => ()
 ) {
-    return new Promise(resolve => {
+  return new Promise((resolve) => {
+    let startTime;
+    const step = (timeStamp) => {
+      const elapsedTime = timeStamp - startTime; // milliseconds
+      if (elapsedTime > duration) {
+        return resolve();
+      }
 
-        let startTime;
-        const step = timeStamp => {
-            const elapsedTime = timeStamp - startTime;  // milliseconds
-            if (elapsedTime > duration) {
-                return resolve();
-            }
+      callback(elapsedTime);
 
-            callback(elapsedTime);
-
-            window.requestAnimationFrame(step);
-        }
-        window.requestAnimationFrame(timeStamp => {
-            startTime = timeStamp;
-            step(timeStamp);
-        });
-
+      window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame((timeStamp) => {
+      startTime = timeStamp;
+      step(timeStamp);
     });
+  });
 }
