@@ -5,105 +5,6 @@ const audioContext = new AudioContext();
 
 const audioAnalyserNode = audioContext.createAnalyser();
 
-//
-// Audio inputs
-//
-
-let micStream;
-let micStreamNode;
-const micOnButton = document.getElementById("micOnButton");
-micOnButton.addEventListener("click", async () => {
-  try {
-    // FIXME: Cannot call multiple times.
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch (err) {
-    window.alert("Failed to get audio stream.");
-    throw err;
-  }
-  micStreamNode = audioContext.createMediaStreamSource(micStream);
-  micStreamNode.connect(audioAnalyserNode);
-  micOnButton.disabled = true;
-  // TODO: mic off button
-});
-
-const oscillatorOnButton = document.getElementById("oscillatorOnButton");
-oscillatorOnButton.addEventListener("click", () => {
-  oscillatorOnButton.disabled = true;
-
-  const oscillatorNode = audioContext.createOscillator();
-  oscillatorNode.connect(audioContext.destination);
-  oscillatorNode.connect(audioAnalyserNode);
-  oscillatorNode.start();
-  setTimeout(() => {
-    oscillatorNode.stop();
-    oscillatorNode.disconnect();
-
-    oscillatorOnButton.disabled = false;
-  }, 2000); // milliseconds
-});
-
-let audioElement;
-const audioArea = document.getElementById("audioArea");
-const audioFileInput = document.getElementById("audioFileInput");
-audioFileInput.addEventListener("change", () => {
-  // TODO: Validate the audio file.
-
-  // TODO: Revoke.
-  const audioFileURL = URL.createObjectURL(audioFileInput.files[0]);
-
-  if (audioElement) {
-    audioArea.removeChild(audioElement);
-  }
-
-  audioElement = document.createElement("audio");
-  audioElement.controls = true;
-  audioElement.src = audioFileURL;
-  audioArea.appendChild(audioElement);
-
-  // TODO: Disconnect.
-  const inputAudioNode = audioContext.createMediaElementSource(audioElement);
-  inputAudioNode.connect(audioAnalyserNode);
-  inputAudioNode.connect(audioContext.destination);
-});
-
-//
-// Analyzer settings
-//
-
-const minDecibelsInput = document.getElementById("minDecibelsInput");
-const maxDecibelsInput = document.getElementById("maxDecibelsInput");
-const smoothingTimeConstantInput = document.getElementById(
-  "smoothingTimeConstantInput"
-);
-
-function reflectSettings(audioAnalyserNode) {
-  // TODO: Validate.
-  audioAnalyserNode.minDecibels = Number(minDecibelsInput.value);
-  audioAnalyserNode.maxDecibels = Number(maxDecibelsInput.value);
-  audioAnalyserNode.smoothingTimeConstant = Number(
-    smoothingTimeConstantInput.value
-  );
-}
-
-const setRecommendedValueButton = document.getElementById(
-  "setRecommendedValueButton"
-);
-setRecommendedValueButton.addEventListener("click", () => {
-  minDecibelsInput.value = -40;
-  maxDecibelsInput.value = 0;
-  smoothingTimeConstantInput.value = 0;
-});
-
-//
-// Monitor
-//
-
-const frequencyDataChart = document.getElementById("frequencyDataChart");
-const frequencyChart = document.getElementById("frequencyChart");
-const measuredFrequencyText = document.getElementById("measuredFrequencyText");
-const strengthChart = document.getElementById("strengthChart");
-const measuredStrengthText = document.getElementById("measuredStrengthText");
-
 // TODO: make charts' fields readonly.
 
 class ArrayChartEditor {
@@ -137,7 +38,6 @@ class ArrayChartEditor {
     this.lastDrawnDate = new Date();
   }
 }
-const frequencyDataChartEditor = new ArrayChartEditor(frequencyDataChart, 255);
 
 class TimeSeriesChartEditor {
   constructor(canvas, valueUpperLimit) {
@@ -244,6 +144,105 @@ class TimeSeriesChartEditor {
     ctx.closePath();
   }
 }
+
+//
+// Audio inputs
+//
+
+let micStream;
+let micStreamNode;
+const micOnButton = document.getElementById("micOnButton");
+micOnButton.addEventListener("click", async () => {
+  try {
+    // FIXME: Cannot call multiple times.
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    window.alert("Failed to get audio stream.");
+    throw err;
+  }
+  micStreamNode = audioContext.createMediaStreamSource(micStream);
+  micStreamNode.connect(audioAnalyserNode);
+  micOnButton.disabled = true;
+  // TODO: mic off button
+});
+
+const oscillatorOnButton = document.getElementById("oscillatorOnButton");
+oscillatorOnButton.addEventListener("click", () => {
+  oscillatorOnButton.disabled = true;
+
+  const oscillatorNode = audioContext.createOscillator();
+  oscillatorNode.connect(audioContext.destination);
+  oscillatorNode.connect(audioAnalyserNode);
+  oscillatorNode.start();
+  setTimeout(() => {
+    oscillatorNode.stop();
+    oscillatorNode.disconnect();
+
+    oscillatorOnButton.disabled = false;
+  }, 2000); // milliseconds
+});
+
+let audioElement;
+const audioArea = document.getElementById("audioArea");
+const audioFileInput = document.getElementById("audioFileInput");
+audioFileInput.addEventListener("change", () => {
+  // TODO: Validate the audio file.
+
+  // TODO: Revoke.
+  const audioFileURL = URL.createObjectURL(audioFileInput.files[0]);
+
+  if (audioElement) {
+    audioArea.removeChild(audioElement);
+  }
+
+  audioElement = document.createElement("audio");
+  audioElement.controls = true;
+  audioElement.src = audioFileURL;
+  audioArea.appendChild(audioElement);
+
+  // TODO: Disconnect.
+  const inputAudioNode = audioContext.createMediaElementSource(audioElement);
+  inputAudioNode.connect(audioAnalyserNode);
+  inputAudioNode.connect(audioContext.destination);
+});
+
+//
+// Analyzer settings
+//
+
+const minDecibelsInput = document.getElementById("minDecibelsInput");
+const maxDecibelsInput = document.getElementById("maxDecibelsInput");
+const smoothingTimeConstantInput = document.getElementById(
+  "smoothingTimeConstantInput"
+);
+
+function reflectSettings(audioAnalyserNode) {
+  // TODO: Validate.
+  audioAnalyserNode.minDecibels = Number(minDecibelsInput.value);
+  audioAnalyserNode.maxDecibels = Number(maxDecibelsInput.value);
+  audioAnalyserNode.smoothingTimeConstant = Number(
+    smoothingTimeConstantInput.value
+  );
+}
+
+const setRecommendedValueButton = document.getElementById(
+  "setRecommendedValueButton"
+);
+setRecommendedValueButton.addEventListener("click", () => {
+  minDecibelsInput.value = -40;
+  maxDecibelsInput.value = 0;
+  smoothingTimeConstantInput.value = 0;
+});
+
+//
+// Monitor
+//
+
+const frequencyChart = document.getElementById("frequencyChart");
+const measuredFrequencyText = document.getElementById("measuredFrequencyText");
+const strengthChart = document.getElementById("strengthChart");
+const measuredStrengthText = document.getElementById("measuredStrengthText");
+
 // TODO: Decide the upper limit.
 const frequencyChartEditor = new TimeSeriesChartEditor(frequencyChart, 2400);
 const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
@@ -305,19 +304,12 @@ stateMeasurements.addEventListener("began", (event) => {
 stateMeasurements.addEventListener("dataPointAdded", (event) => {
   const { dataPoint } = event.detail;
   const { elapsedTime, data } = dataPoint;
-  const { frequencyData, frequency, strength } = data;
+  const { frequency, strength } = data;
 
   frequencyChartEditor.drawPoint(elapsedTime, frequency);
   measuredFrequencyText.textContent = frequency.toString();
   strengthChartEditor.drawPoint(elapsedTime, strength);
   measuredStrengthText.textContent = strength.toString();
-  // Reduce refresh rate to watch the chart carefully.
-  if (
-    !frequencyDataChartEditor.lastDrawnDate ||
-    Date.now() - frequencyDataChartEditor.lastDrawnDate > 400
-  ) {
-    frequencyDataChartEditor.draw(frequencyData);
-  }
 });
 stateMeasurements.addEventListener("ended", (event) => {
   // const { elapsedTime } = event.detail;
