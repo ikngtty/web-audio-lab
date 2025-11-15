@@ -150,29 +150,47 @@ class TimeSeriesChartEditor {
     ctx.scale(1, -1);
 
     this.valueUpperLimit = valueUpperLimit;
-    this.isActive = false;
     this.timeUpperLimit = null;
+    this.isMeasuring = false;
+    this.snapshotOnMeasureEnded = null;
   }
 
   clear() {
     const ctx = this.canvasContext;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    this.isActive = false;
+    this.timeUpperLimit = null;
+    this.isMeasuring = false;
+    this.snapshotOnMeasureEnded = null;
   }
 
   begin(timeUpperLimit) {
-    if (this.isActive) {
-      throw new Error("The chart should not be active before beginning.");
+    if (this.isMeasuring) {
+      throw new Error("The chart has begun already.");
     }
 
     this.timeUpperLimit = timeUpperLimit;
-    this.isActive = true;
+    this.isMeasuring = true;
+  }
+
+  end() {
+    if (!this.isMeasuring) {
+      throw new Error("The chart has not begun.");
+    }
+
+    const ctx = this.canvasContext;
+    this.snapshotOnMeasureEnded = ctx.getImageData(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
+    this.isMeasuring = false;
   }
 
   drawPoint(time, value) {
-    if (!this.isActive) {
-      throw new Error("The chart should be active.");
+    if (!this.isMeasuring) {
+      throw new Error("The chart should have begun.");
     }
     if (time > this.timeUpperLimit) {
       throw new Error("The time is over the limit.");
@@ -191,6 +209,38 @@ class TimeSeriesChartEditor {
       true // clockwise
     );
     ctx.fill();
+    ctx.closePath();
+  }
+
+  selectPoint(time, value) {
+    if (!this.timeUpperLimit) {
+      throw new Error("The chart is empty.");
+    }
+    if (this.isMeasuring) {
+      throw new Error("The chart should have ended."); // Because the saved snapshot is necessary.
+    }
+    // TODO: Validate time and value.
+
+    // Reset the previous selection.
+    const ctx = this.canvasContext;
+    ctx.putImageData(this.snapshotOnMeasureEnded, 0, 0);
+
+    // Draw the selected point.
+    const x = (time / this.timeUpperLimit) * this.canvas.width;
+    const y = Math.min(value / this.valueUpperLimit, 1) * this.canvas.height;
+    ctx.beginPath();
+    ctx.arc(
+      x,
+      y,
+      4, // radius
+      0,
+      2 * Math.PI, // angle of start and end
+      true // clockwise
+    );
+    ctx.save();
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.restore();
     ctx.closePath();
   }
 }
@@ -268,6 +318,11 @@ stateMeasurements.addEventListener("dataPointAdded", (event) => {
   ) {
     frequencyDataChartEditor.draw(frequencyData);
   }
+});
+stateMeasurements.addEventListener("ended", (event) => {
+  // const { elapsedTime } = event.detail;
+  frequencyChartEditor.end();
+  strengthChartEditor.end();
 });
 stateMeasurements.addEventListener("cleared", () => {
   frequencyChartEditor.clear();
@@ -348,9 +403,13 @@ class StateSelection extends EventTarget {
 const stateSoundIndexSelection = new StateSelection();
 stateSoundIndexSelection.addEventListener("valueChanged", (event) => {
   const { value: soundIndex } = event.detail;
-  const frequencyData =
-    stateMeasurements.dataPoints[soundIndex].data.frequencyData;
+  const dataPoint = stateMeasurements.dataPoints[soundIndex];
+  const { elapsedTime, data } = dataPoint;
+  const { frequencyData, frequency, strength } = data;
+
   frequencyDataOfSelectedSoundChartEditor.draw(frequencyData);
+  frequencyChartEditor.selectPoint(elapsedTime, frequency);
+  strengthChartEditor.selectPoint(elapsedTime, strength);
 });
 
 const selectedSoundIndexInput = document.getElementById(
