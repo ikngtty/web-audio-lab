@@ -401,7 +401,9 @@ stateSoundIndexSelection.addEventListener("valueChanged", (event) => {
 
   frequencyDataOfSelectedSoundChartEditor.draw(frequencyData);
   frequencyChartEditor.selectPoint(elapsedTime, frequency);
+  measuredFrequencyText.textContent = frequency.toString();
   strengthChartEditor.selectPoint(elapsedTime, strength);
+  measuredStrengthText.textContent = strength.toString();
 });
 
 const selectedSoundIndexInput = document.getElementById(
