@@ -243,8 +243,7 @@ const measuredFrequencyText = document.getElementById("measuredFrequencyText");
 const strengthChart = document.getElementById("strengthChart");
 const measuredStrengthText = document.getElementById("measuredStrengthText");
 
-// TODO: Decide the upper limit.
-const frequencyChartEditor = new TimeSeriesChartEditor(frequencyChart, 2400);
+const frequencyChartEditor = new TimeSeriesChartEditor(frequencyChart, 1200);
 const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
 
 class StateTimeSeries extends EventTarget {
