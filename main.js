@@ -431,31 +431,34 @@ function analyzeCurrentSound(audioAnalyserNode) {
   const frequencyData = new Uint8Array(frequencyBinCount);
   audioAnalyserNode.getByteFrequencyData(frequencyData);
 
-  const frequencyPeekIndex = getIndexOfMax(frequencyData);
+  const maxStrength = getMax(frequencyData).value;
+  const peekStrengthThreshold = maxStrength * 0.4; // This parameter is from my experiments.
+  const firstPeekIndex = frequencyData.findIndex(
+    (v) => v >= peekStrengthThreshold
+  );
   const frequency =
     frequencyLowerBound +
-    (frequencyRange / frequencyBinCount) * (frequencyPeekIndex + 0.5);
-  const strength = frequencyData[frequencyPeekIndex];
+    (frequencyRange / frequencyBinCount) * (firstPeekIndex + 0.5);
   return {
     frequencyData,
     frequency,
-    strength,
+    strength: maxStrength,
   };
 }
 
-function getIndexOfMax(arr) {
+function getMax(arr) {
   if (arr.length == 0) {
     throw new TypeError("Empty array.");
   }
 
-  let [maxI, maxV] = [0, arr[0]];
+  let max = { index: 0, value: arr[0] };
   arr.forEach((v, i) => {
-    if (v > maxV) {
-      [maxI, maxV] = [i, v];
+    if (v > max.value) {
+      max = { index: i, value: v };
     }
   });
 
-  return maxI;
+  return max;
 }
 
 function repeatFor(
