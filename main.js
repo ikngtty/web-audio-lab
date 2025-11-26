@@ -1,9 +1,8 @@
-"use strict";
-
-const audioContext = new AudioContext();
-const audioAnalyserNode = audioContext.createAnalyser();
-let micStream;
-let micStreamNode;
+import { ArrayChartEditor } from "./lib/components/ArrayChartEditor";
+import { TimeSeriesChartEditor } from "./lib/components/TimeSeriesChartEditor";
+import { StateSelection } from "./lib/states/StateSelection";
+import { StateTimeSeries } from "./lib/states/StateTimeSeries";
+import { analyzeCurrentSound, repeatFor } from "./lib/util";
 
 //
 // DOMs
@@ -50,150 +49,15 @@ const frequencyDataOfSelectedSoundChart = document.getElementById(
 );
 
 //
-// Components
+// Global vars
 //
 
-// TODO: make charts' fields readonly.
+const audioContext = new AudioContext();
+const audioAnalyserNode = audioContext.createAnalyser();
+let micStream;
+let micStreamNode;
 
-class TimeSeriesChartEditor {
-  constructor(canvas, valueUpperLimit) {
-    this.canvas = canvas;
-    // TODO: Check for canvas support (= whether getContext is not null).
-    this.canvasContext = canvas.getContext("2d");
-    // Use Cartesian coordinate system for ease of description.
-    const ctx = this.canvasContext;
-    ctx.translate(0, canvas.height);
-    ctx.scale(1, -1);
-
-    this.valueUpperLimit = valueUpperLimit;
-    this.timeUpperLimit = null;
-    this.isMeasuring = false;
-    this.snapshotOnMeasureEnded = null;
-  }
-
-  clear() {
-    const ctx = this.canvasContext;
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    this.timeUpperLimit = null;
-    this.isMeasuring = false;
-    this.snapshotOnMeasureEnded = null;
-  }
-
-  begin(timeUpperLimit) {
-    if (this.isMeasuring) {
-      throw new Error("The chart has begun already.");
-    }
-
-    this.timeUpperLimit = timeUpperLimit;
-    this.isMeasuring = true;
-  }
-
-  end() {
-    if (!this.isMeasuring) {
-      throw new Error("The chart has not begun.");
-    }
-
-    const ctx = this.canvasContext;
-    this.snapshotOnMeasureEnded = ctx.getImageData(
-      0,
-      0,
-      this.canvas.width,
-      this.canvas.height
-    );
-    this.isMeasuring = false;
-  }
-
-  drawPoint(time, value) {
-    if (!this.isMeasuring) {
-      throw new Error("The chart should have begun.");
-    }
-    if (time > this.timeUpperLimit) {
-      throw new Error("The time is over the limit.");
-    }
-
-    const x = (time / this.timeUpperLimit) * this.canvas.width;
-    const y = Math.min(value / this.valueUpperLimit, 1) * this.canvas.height;
-    const ctx = this.canvasContext;
-    ctx.beginPath();
-    ctx.arc(
-      x,
-      y,
-      4, // radius
-      0,
-      2 * Math.PI, // angle of start and end
-      true // clockwise
-    );
-    ctx.fill();
-    ctx.closePath();
-  }
-
-  selectPoint(time, value) {
-    if (!this.timeUpperLimit) {
-      throw new Error("The chart is empty.");
-    }
-    if (this.isMeasuring) {
-      throw new Error("The chart should have ended."); // Because the saved snapshot is necessary.
-    }
-    // TODO: Validate time and value.
-
-    // Reset the previous selection.
-    const ctx = this.canvasContext;
-    ctx.putImageData(this.snapshotOnMeasureEnded, 0, 0);
-
-    // Draw the selected point.
-    const x = (time / this.timeUpperLimit) * this.canvas.width;
-    const y = Math.min(value / this.valueUpperLimit, 1) * this.canvas.height;
-    ctx.beginPath();
-    ctx.arc(
-      x,
-      y,
-      4, // radius
-      0,
-      2 * Math.PI, // angle of start and end
-      true // clockwise
-    );
-    ctx.save();
-    ctx.fillStyle = "red";
-    ctx.fill();
-    ctx.restore();
-    ctx.closePath();
-  }
-}
-
-class ArrayChartEditor {
-  constructor(canvas, valueUpperLimit) {
-    this.canvas = canvas;
-    // TODO: Check for canvas support (= whether getContext is not null).
-    this.canvasContext = canvas.getContext("2d");
-    // Use Cartesian coordinate system for ease of description.
-    const ctx = this.canvasContext;
-    ctx.translate(0, canvas.height);
-    ctx.scale(1, -1);
-
-    this.valueUpperLimit = valueUpperLimit;
-    this.lastDrawnDate = null;
-  }
-
-  draw(arr) {
-    const canvas = this.canvas;
-    const ctx = this.canvasContext;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const y = 0;
-    const width = canvas.width / arr.length;
-    arr.forEach((value, index) => {
-      const x = width * index;
-      const height = Math.min(value / this.valueUpperLimit, 1) * canvas.height;
-      ctx.fillRect(x, y, width, height);
-    });
-
-    this.lastDrawnDate = new Date();
-  }
-}
-
-// Instances
+// Components
 
 const frequencyChartEditor = new TimeSeriesChartEditor(frequencyChart, 1200);
 const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
@@ -203,76 +67,7 @@ const frequencyDataOfSelectedSoundChartEditor = new ArrayChartEditor(
   255
 );
 
-//
 // States
-//
-
-class StateTimeSeries extends EventTarget {
-  constructor() {
-    super();
-    this._dataPoints = [];
-    this._estimatedDuration = null;
-  }
-
-  begin(estimatedDuration) {
-    this._estimatedDuration = estimatedDuration;
-    this.dispatchEvent(
-      new CustomEvent("began", {
-        detail: { estimatedDuration },
-      })
-    );
-  }
-
-  addDataPoint(elapsedTime, data) {
-    const dataPoint = { elapsedTime, data };
-    this._dataPoints.push(dataPoint);
-    this.dispatchEvent(
-      new CustomEvent("dataPointAdded", {
-        detail: { dataPoint },
-      })
-    );
-  }
-
-  end(elapsedTime) {
-    this.dispatchEvent(
-      new CustomEvent("ended", {
-        detail: { elapsedTime },
-      })
-    );
-  }
-
-  get dataPoints() {
-    return this._dataPoints;
-  }
-
-  get estimatedDuration() {
-    return this._estimatedDuration;
-  }
-
-  clear() {
-    this._dataPoints = [];
-    this._estimatedDuration = null;
-    this.dispatchEvent(new CustomEvent("cleared"));
-  }
-}
-
-class StateSelection extends EventTarget {
-  constructor() {
-    super();
-    this._value = null;
-  }
-
-  set value(value) {
-    this._value = value;
-    this.dispatchEvent(new CustomEvent("valueChanged", { detail: { value } }));
-  }
-
-  get value() {
-    return this._value;
-  }
-}
-
-// Instances
 
 const stateMeasurements = new StateTimeSeries();
 const stateSoundIndexSelection = new StateSelection();
@@ -434,7 +229,7 @@ selectSoundButton.addEventListener("click", () => {
 });
 
 //
-// Util
+// Functions
 //
 
 function reflectSettings(audioAnalyserNode) {
@@ -444,67 +239,4 @@ function reflectSettings(audioAnalyserNode) {
   audioAnalyserNode.smoothingTimeConstant = Number(
     smoothingTimeConstantInput.value
   );
-}
-
-function analyzeCurrentSound(audioAnalyserNode) {
-  const sampleRate = audioAnalyserNode.context.sampleRate;
-  const frequencyLowerBound = 0;
-  const frequencyUpperBound = sampleRate / 2;
-  const frequencyRange = frequencyUpperBound - frequencyLowerBound;
-  const frequencyBinCount = audioAnalyserNode.frequencyBinCount;
-
-  const frequencyData = new Uint8Array(frequencyBinCount);
-  audioAnalyserNode.getByteFrequencyData(frequencyData);
-
-  const maxStrength = getMax(frequencyData).value;
-  const peekStrengthThreshold = maxStrength * 0.4; // This parameter is from my experiments.
-  const firstPeekIndex = frequencyData.findIndex(
-    (v) => v >= peekStrengthThreshold
-  );
-  const frequency =
-    frequencyLowerBound +
-    (frequencyRange / frequencyBinCount) * (firstPeekIndex + 0.5);
-  return {
-    frequencyData,
-    frequency,
-    strength: maxStrength,
-  };
-}
-
-function getMax(arr) {
-  if (arr.length == 0) {
-    throw new TypeError("Empty array.");
-  }
-
-  let max = { index: 0, value: arr[0] };
-  arr.forEach((v, i) => {
-    if (v > max.value) {
-      max = { index: i, value: v };
-    }
-  });
-
-  return max;
-}
-
-function repeatFor(
-  duration, // milliseconds
-  callback // (elapsedTime) => ()
-) {
-  return new Promise((resolve) => {
-    let startTime;
-    const step = (timeStamp) => {
-      const elapsedTime = timeStamp - startTime; // milliseconds
-      if (elapsedTime > duration) {
-        return resolve();
-      }
-
-      callback(elapsedTime);
-
-      window.requestAnimationFrame(step);
-    };
-    window.requestAnimationFrame((timeStamp) => {
-      startTime = timeStamp;
-      step(timeStamp);
-    });
-  });
 }
