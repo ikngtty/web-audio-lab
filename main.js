@@ -1,43 +1,61 @@
 "use strict";
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-const audioContext = new AudioContext();
 
+const audioContext = new AudioContext();
 const audioAnalyserNode = audioContext.createAnalyser();
+let micStream;
+let micStreamNode;
+
+//
+// DOMs
+//
+
+// Audio inputs
+
+const micOnButton = document.getElementById("micOnButton");
+const oscillatorOnButton = document.getElementById("oscillatorOnButton");
+const audioFileInput = document.getElementById("audioFileInput");
+const audioArea = document.getElementById("audioArea");
+let audioElement; // dynamically created
+
+// Analyzer Settings
+
+const minDecibelsInput = document.getElementById("minDecibelsInput");
+const maxDecibelsInput = document.getElementById("maxDecibelsInput");
+const smoothingTimeConstantInput = document.getElementById(
+  "smoothingTimeConstantInput"
+);
+const setRecommendedValueButton = document.getElementById(
+  "setRecommendedValueButton"
+);
+
+// Monitor
+
+const measureButton = document.getElementById("measureButton");
+const measureAndPlayFileButton = document.getElementById(
+  "measureAndPlayFileButton"
+);
+const measuredFrequencyText = document.getElementById("measuredFrequencyText");
+const frequencyChart = document.getElementById("frequencyChart");
+const measuredStrengthText = document.getElementById("measuredStrengthText");
+const strengthChart = document.getElementById("strengthChart");
+
+// Inspector
+
+const selectedSoundIndexInput = document.getElementById(
+  "selectedSoundIndexInput"
+);
+const selectSoundButton = document.getElementById("selectSoundButton");
+const frequencyDataOfSelectedSoundChart = document.getElementById(
+  "frequencyDataOfSelectedSoundChart"
+);
+
+//
+// Components
+//
 
 // TODO: make charts' fields readonly.
-
-class ArrayChartEditor {
-  constructor(canvas, valueUpperLimit) {
-    this.canvas = canvas;
-    // TODO: Check for canvas support (= whether getContext is not null).
-    this.canvasContext = canvas.getContext("2d");
-    // Use Cartesian coordinate system for ease of description.
-    const ctx = this.canvasContext;
-    ctx.translate(0, canvas.height);
-    ctx.scale(1, -1);
-
-    this.valueUpperLimit = valueUpperLimit;
-    this.lastDrawnDate = null;
-  }
-
-  draw(arr) {
-    const canvas = this.canvas;
-    const ctx = this.canvasContext;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const y = 0;
-    const width = canvas.width / arr.length;
-    arr.forEach((value, index) => {
-      const x = width * index;
-      const height = Math.min(value / this.valueUpperLimit, 1) * canvas.height;
-      ctx.fillRect(x, y, width, height);
-    });
-
-    this.lastDrawnDate = new Date();
-  }
-}
 
 class TimeSeriesChartEditor {
   constructor(canvas, valueUpperLimit) {
@@ -145,106 +163,51 @@ class TimeSeriesChartEditor {
   }
 }
 
-//
-// Audio inputs
-//
+class ArrayChartEditor {
+  constructor(canvas, valueUpperLimit) {
+    this.canvas = canvas;
+    // TODO: Check for canvas support (= whether getContext is not null).
+    this.canvasContext = canvas.getContext("2d");
+    // Use Cartesian coordinate system for ease of description.
+    const ctx = this.canvasContext;
+    ctx.translate(0, canvas.height);
+    ctx.scale(1, -1);
 
-let micStream;
-let micStreamNode;
-const micOnButton = document.getElementById("micOnButton");
-micOnButton.addEventListener("click", async () => {
-  try {
-    // FIXME: Cannot call multiple times.
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch (err) {
-    window.alert("Failed to get audio stream.");
-    throw err;
-  }
-  micStreamNode = audioContext.createMediaStreamSource(micStream);
-  micStreamNode.connect(audioAnalyserNode);
-  micOnButton.disabled = true;
-  // TODO: mic off button
-});
-
-const oscillatorOnButton = document.getElementById("oscillatorOnButton");
-oscillatorOnButton.addEventListener("click", () => {
-  oscillatorOnButton.disabled = true;
-
-  const oscillatorNode = audioContext.createOscillator();
-  oscillatorNode.connect(audioContext.destination);
-  oscillatorNode.connect(audioAnalyserNode);
-  oscillatorNode.start();
-  setTimeout(() => {
-    oscillatorNode.stop();
-    oscillatorNode.disconnect();
-
-    oscillatorOnButton.disabled = false;
-  }, 2000); // milliseconds
-});
-
-let audioElement;
-const audioArea = document.getElementById("audioArea");
-const audioFileInput = document.getElementById("audioFileInput");
-audioFileInput.addEventListener("change", () => {
-  // TODO: Validate the audio file.
-
-  // TODO: Revoke.
-  const audioFileURL = URL.createObjectURL(audioFileInput.files[0]);
-
-  if (audioElement) {
-    audioArea.removeChild(audioElement);
+    this.valueUpperLimit = valueUpperLimit;
+    this.lastDrawnDate = null;
   }
 
-  audioElement = document.createElement("audio");
-  audioElement.controls = true;
-  audioElement.src = audioFileURL;
-  audioArea.appendChild(audioElement);
+  draw(arr) {
+    const canvas = this.canvas;
+    const ctx = this.canvasContext;
 
-  // TODO: Disconnect.
-  const inputAudioNode = audioContext.createMediaElementSource(audioElement);
-  inputAudioNode.connect(audioAnalyserNode);
-  inputAudioNode.connect(audioContext.destination);
-});
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-//
-// Analyzer settings
-//
+    const y = 0;
+    const width = canvas.width / arr.length;
+    arr.forEach((value, index) => {
+      const x = width * index;
+      const height = Math.min(value / this.valueUpperLimit, 1) * canvas.height;
+      ctx.fillRect(x, y, width, height);
+    });
 
-const minDecibelsInput = document.getElementById("minDecibelsInput");
-const maxDecibelsInput = document.getElementById("maxDecibelsInput");
-const smoothingTimeConstantInput = document.getElementById(
-  "smoothingTimeConstantInput"
-);
-
-function reflectSettings(audioAnalyserNode) {
-  // TODO: Validate.
-  audioAnalyserNode.minDecibels = Number(minDecibelsInput.value);
-  audioAnalyserNode.maxDecibels = Number(maxDecibelsInput.value);
-  audioAnalyserNode.smoothingTimeConstant = Number(
-    smoothingTimeConstantInput.value
-  );
+    this.lastDrawnDate = new Date();
+  }
 }
 
-const setRecommendedValueButton = document.getElementById(
-  "setRecommendedValueButton"
-);
-setRecommendedValueButton.addEventListener("click", () => {
-  minDecibelsInput.value = -40;
-  maxDecibelsInput.value = 0;
-  smoothingTimeConstantInput.value = 0;
-});
-
-//
-// Monitor
-//
-
-const frequencyChart = document.getElementById("frequencyChart");
-const measuredFrequencyText = document.getElementById("measuredFrequencyText");
-const strengthChart = document.getElementById("strengthChart");
-const measuredStrengthText = document.getElementById("measuredStrengthText");
+// Instances
 
 const frequencyChartEditor = new TimeSeriesChartEditor(frequencyChart, 1200);
 const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
+
+const frequencyDataOfSelectedSoundChartEditor = new ArrayChartEditor(
+  frequencyDataOfSelectedSoundChart,
+  255
+);
+
+//
+// States
+//
 
 class StateTimeSeries extends EventTarget {
   constructor() {
@@ -294,7 +257,34 @@ class StateTimeSeries extends EventTarget {
     this.dispatchEvent(new CustomEvent("cleared"));
   }
 }
+
+class StateSelection extends EventTarget {
+  constructor() {
+    super();
+    this._value = null;
+  }
+
+  set value(value) {
+    this._value = value;
+    this.dispatchEvent(new CustomEvent("valueChanged", { detail: { value } }));
+  }
+
+  get value() {
+    return this._value;
+  }
+}
+
+// Instances
+
 const stateMeasurements = new StateTimeSeries();
+const stateSoundIndexSelection = new StateSelection();
+
+//
+// Event handlers
+//
+
+// States
+
 stateMeasurements.addEventListener("began", (event) => {
   const { estimatedDuration } = event.detail;
   frequencyChartEditor.begin(estimatedDuration);
@@ -322,10 +312,81 @@ stateMeasurements.addEventListener("cleared", () => {
   measuredStrengthText.textContent = "";
 });
 
-const measureButton = document.getElementById("measureButton");
-const measureAndPlayFileButton = document.getElementById(
-  "measureAndPlayFileButton"
-);
+stateSoundIndexSelection.addEventListener("valueChanged", (event) => {
+  const { value: soundIndex } = event.detail;
+  const dataPoint = stateMeasurements.dataPoints[soundIndex];
+  const { elapsedTime, data } = dataPoint;
+  const { frequencyData, frequency, strength } = data;
+
+  frequencyDataOfSelectedSoundChartEditor.draw(frequencyData);
+  frequencyChartEditor.selectPoint(elapsedTime, frequency);
+  measuredFrequencyText.textContent = frequency.toString();
+  strengthChartEditor.selectPoint(elapsedTime, strength);
+  measuredStrengthText.textContent = strength.toString();
+});
+
+// Audio inputs
+
+micOnButton.addEventListener("click", async () => {
+  try {
+    // FIXME: Cannot call multiple times.
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    window.alert("Failed to get audio stream.");
+    throw err;
+  }
+  micStreamNode = audioContext.createMediaStreamSource(micStream);
+  micStreamNode.connect(audioAnalyserNode);
+  micOnButton.disabled = true;
+  // TODO: mic off button
+});
+
+oscillatorOnButton.addEventListener("click", () => {
+  oscillatorOnButton.disabled = true;
+
+  const oscillatorNode = audioContext.createOscillator();
+  oscillatorNode.connect(audioContext.destination);
+  oscillatorNode.connect(audioAnalyserNode);
+  oscillatorNode.start();
+  setTimeout(() => {
+    oscillatorNode.stop();
+    oscillatorNode.disconnect();
+
+    oscillatorOnButton.disabled = false;
+  }, 2000); // milliseconds
+});
+
+audioFileInput.addEventListener("change", () => {
+  // TODO: Validate the audio file.
+
+  // TODO: Revoke.
+  const audioFileURL = URL.createObjectURL(audioFileInput.files[0]);
+
+  if (audioElement) {
+    audioArea.removeChild(audioElement);
+  }
+
+  audioElement = document.createElement("audio");
+  audioElement.controls = true;
+  audioElement.src = audioFileURL;
+  audioArea.appendChild(audioElement);
+
+  // TODO: Disconnect.
+  const inputAudioNode = audioContext.createMediaElementSource(audioElement);
+  inputAudioNode.connect(audioAnalyserNode);
+  inputAudioNode.connect(audioContext.destination);
+});
+
+// Analyzer settings
+
+setRecommendedValueButton.addEventListener("click", () => {
+  minDecibelsInput.value = -40;
+  maxDecibelsInput.value = 0;
+  smoothingTimeConstantInput.value = 0;
+});
+
+// Monitor
+
 measureButton.addEventListener("click", async () => {
   measureButton.disabled = true;
   // HACK: It is disgusting that measureButton knows measureAndPlayFileButton.
@@ -354,6 +415,7 @@ measureButton.addEventListener("click", async () => {
   // HACK: It is disgusting that measureButton knows measureAndPlayFileButton.
   measureAndPlayFileButton.disabled = false;
 });
+
 measureAndPlayFileButton.addEventListener("click", async () => {
   if (!audioElement) {
     window.alert("No audio file.");
@@ -364,51 +426,8 @@ measureAndPlayFileButton.addEventListener("click", async () => {
   audioElement.play();
 });
 
-//
 // Inspector
-//
 
-const frequencyDataOfSelectedSoundChart = document.getElementById(
-  "frequencyDataOfSelectedSoundChart"
-);
-const frequencyDataOfSelectedSoundChartEditor = new ArrayChartEditor(
-  frequencyDataOfSelectedSoundChart,
-  255
-);
-
-class StateSelection extends EventTarget {
-  constructor() {
-    super();
-    this._value = null;
-  }
-
-  set value(value) {
-    this._value = value;
-    this.dispatchEvent(new CustomEvent("valueChanged", { detail: { value } }));
-  }
-
-  get value() {
-    return this._value;
-  }
-}
-const stateSoundIndexSelection = new StateSelection();
-stateSoundIndexSelection.addEventListener("valueChanged", (event) => {
-  const { value: soundIndex } = event.detail;
-  const dataPoint = stateMeasurements.dataPoints[soundIndex];
-  const { elapsedTime, data } = dataPoint;
-  const { frequencyData, frequency, strength } = data;
-
-  frequencyDataOfSelectedSoundChartEditor.draw(frequencyData);
-  frequencyChartEditor.selectPoint(elapsedTime, frequency);
-  measuredFrequencyText.textContent = frequency.toString();
-  strengthChartEditor.selectPoint(elapsedTime, strength);
-  measuredStrengthText.textContent = strength.toString();
-});
-
-const selectedSoundIndexInput = document.getElementById(
-  "selectedSoundIndexInput"
-);
-const selectSoundButton = document.getElementById("selectSoundButton");
 selectSoundButton.addEventListener("click", () => {
   // TODO: Disable before measuring.
   // TODO: Validate.
@@ -419,6 +438,15 @@ selectSoundButton.addEventListener("click", () => {
 //
 // Util
 //
+
+function reflectSettings(audioAnalyserNode) {
+  // TODO: Validate.
+  audioAnalyserNode.minDecibels = Number(minDecibelsInput.value);
+  audioAnalyserNode.maxDecibels = Number(maxDecibelsInput.value);
+  audioAnalyserNode.smoothingTimeConstant = Number(
+    smoothingTimeConstantInput.value
+  );
+}
 
 function analyzeCurrentSound(audioAnalyserNode) {
   const sampleRate = audioAnalyserNode.context.sampleRate;
