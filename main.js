@@ -1,4 +1,5 @@
 import { ArrayChartEditor } from "./lib/components/ArrayChartEditor.js";
+import { Foldable } from "./lib/components/Foldable.js";
 import { TimeSeriesChartEditor } from "./lib/components/TimeSeriesChartEditor.js";
 import { StateSelection } from "./lib/states/StateSelection.js";
 import { StateTimeSeries } from "./lib/states/StateTimeSeries.js";
@@ -33,8 +34,16 @@ const measureButton = document.getElementById("measureButton");
 const measureAndPlayFileButton = document.getElementById(
   "measureAndPlayFileButton"
 );
+const pitchMonitorFoldButton = document.getElementById(
+  "pitchMonitorFoldButton"
+);
+const pitchMonitor = document.getElementById("pitchMonitor");
 const measuredPitchText = document.getElementById("measuredPitchText");
 const pitchChart = document.getElementById("pitchChart");
+const strengthMonitorFoldButton = document.getElementById(
+  "strengthMonitorFoldButton"
+);
+const strengthMonitor = document.getElementById("strengthMonitor");
 const measuredStrengthText = document.getElementById("measuredStrengthText");
 const strengthChart = document.getElementById("strengthChart");
 
@@ -58,6 +67,12 @@ let micStream;
 let micStreamNode;
 
 // Components
+
+const pitchMonitorFoldable = new Foldable(pitchMonitor, pitchMonitorFoldButton);
+const strengthMonitorFoldable = new Foldable(
+  strengthMonitor,
+  strengthMonitorFoldButton
+);
 
 const pitchChartEditor = new TimeSeriesChartEditor(pitchChart, 1200);
 const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);

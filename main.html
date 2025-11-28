@@ -33,11 +33,17 @@
     <button id="measureAndPlayFileButton">measure and play the file</button>
     <br>
 
+    <span id="pitchMonitorFoldButton"></span>
     Pitch: <span id="measuredPitchText">---</span> Hz<br>
-    <canvas id="pitchChart" width="600" height="300"></canvas><br>
+    <div id="pitchMonitor">
+        <canvas id="pitchChart" width="600" height="300"></canvas>
+    </div>
 
+    <span id="strengthMonitorFoldButton"></span>
     Strength: <span id="measuredStrengthText">---</span><br>
-    <canvas id="strengthChart" width="600" height="300"></canvas><br>
+    <div id="strengthMonitor">
+        <canvas id="strengthChart" width="600" height="300"></canvas>
+    </div>
 
     <!-- Inspector -->
     Sound Index:
