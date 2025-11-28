@@ -1,8 +1,8 @@
-import { ArrayChartEditor } from "./lib/components/ArrayChartEditor";
-import { TimeSeriesChartEditor } from "./lib/components/TimeSeriesChartEditor";
-import { StateSelection } from "./lib/states/StateSelection";
-import { StateTimeSeries } from "./lib/states/StateTimeSeries";
-import { analyzeCurrentSound, repeatFor } from "./lib/util";
+import { ArrayChartEditor } from "./lib/components/ArrayChartEditor.js";
+import { TimeSeriesChartEditor } from "./lib/components/TimeSeriesChartEditor.js";
+import { StateSelection } from "./lib/states/StateSelection.js";
+import { StateTimeSeries } from "./lib/states/StateTimeSeries.js";
+import { analyzeCurrentSound, repeatFor } from "./lib/util.js";
 
 //
 // DOMs
