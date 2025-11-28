@@ -33,8 +33,8 @@ const measureButton = document.getElementById("measureButton");
 const measureAndPlayFileButton = document.getElementById(
   "measureAndPlayFileButton"
 );
-const measuredFrequencyText = document.getElementById("measuredFrequencyText");
-const frequencyChart = document.getElementById("frequencyChart");
+const measuredPitchText = document.getElementById("measuredPitchText");
+const pitchChart = document.getElementById("pitchChart");
 const measuredStrengthText = document.getElementById("measuredStrengthText");
 const strengthChart = document.getElementById("strengthChart");
 
@@ -59,7 +59,7 @@ let micStreamNode;
 
 // Components
 
-const frequencyChartEditor = new TimeSeriesChartEditor(frequencyChart, 1200);
+const pitchChartEditor = new TimeSeriesChartEditor(pitchChart, 1200);
 const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
 
 const frequencyDataOfSelectedSoundChartEditor = new ArrayChartEditor(
@@ -80,27 +80,27 @@ const stateSoundIndexSelection = new StateSelection();
 
 stateMeasurements.addEventListener("began", (event) => {
   const { estimatedDuration } = event.detail;
-  frequencyChartEditor.begin(estimatedDuration);
+  pitchChartEditor.begin(estimatedDuration);
   strengthChartEditor.begin(estimatedDuration);
 });
 stateMeasurements.addEventListener("dataPointAdded", (event) => {
   const { dataPoint } = event.detail;
   const { elapsedTime, data } = dataPoint;
-  const { frequency, strength } = data;
+  const { pitch, strength } = data;
 
-  frequencyChartEditor.drawPoint(elapsedTime, frequency);
-  measuredFrequencyText.textContent = frequency.toString();
+  pitchChartEditor.drawPoint(elapsedTime, pitch);
+  measuredPitchText.textContent = pitch.toString();
   strengthChartEditor.drawPoint(elapsedTime, strength);
   measuredStrengthText.textContent = strength.toString();
 });
 stateMeasurements.addEventListener("ended", (event) => {
   // const { elapsedTime } = event.detail;
-  frequencyChartEditor.end();
+  pitchChartEditor.end();
   strengthChartEditor.end();
 });
 stateMeasurements.addEventListener("cleared", () => {
-  frequencyChartEditor.clear();
-  measuredFrequencyText.textContent = "";
+  pitchChartEditor.clear();
+  measuredPitchText.textContent = "";
   strengthChartEditor.clear();
   measuredStrengthText.textContent = "";
 });
@@ -109,11 +109,11 @@ stateSoundIndexSelection.addEventListener("valueChanged", (event) => {
   const { value: soundIndex } = event.detail;
   const dataPoint = stateMeasurements.dataPoints[soundIndex];
   const { elapsedTime, data } = dataPoint;
-  const { frequencyData, frequency, strength } = data;
+  const { frequencyData, pitch, strength } = data;
 
   frequencyDataOfSelectedSoundChartEditor.draw(frequencyData);
-  frequencyChartEditor.selectPoint(elapsedTime, frequency);
-  measuredFrequencyText.textContent = frequency.toString();
+  pitchChartEditor.selectPoint(elapsedTime, pitch);
+  measuredPitchText.textContent = pitch.toString();
   strengthChartEditor.selectPoint(elapsedTime, strength);
   measuredStrengthText.textContent = strength.toString();
 });
