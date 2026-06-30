@@ -33,16 +33,28 @@
     <button id="measureAndPlayFileButton">measure and play the file</button>
     <br>
 
-    <span id="pitchMonitorFoldButton"></span>
-    Pitch: <span id="measuredPitchText">---</span> Hz<br>
-    <div id="pitchMonitor">
-        <canvas id="pitchChart" width="600" height="300"></canvas>
+    <span id="fftPitchMonitorFoldButton"></span>
+    Pitch (FFT): <span id="measuredFftPitchText">---</span> Hz<br>
+    <div id="fftPitchMonitor">
+        <canvas id="fftPitchChart" width="600" height="300"></canvas>
     </div>
 
-    <span id="strengthMonitorFoldButton"></span>
-    Strength: <span id="measuredStrengthText">---</span><br>
-    <div id="strengthMonitor">
-        <canvas id="strengthChart" width="600" height="300"></canvas>
+    <span id="fftStrengthMonitorFoldButton"></span>
+    Strength (FFT): <span id="measuredFftStrengthText">---</span><br>
+    <div id="fftStrengthMonitor">
+        <canvas id="fftStrengthChart" width="600" height="300"></canvas>
+    </div>
+
+    <span id="acPitchMonitorFoldButton"></span>
+    Pitch (Autocorrelation): <span id="measuredAcPitchText">---</span> Hz<br>
+    <div id="acPitchMonitor">
+        <canvas id="acPitchChart" width="600" height="300"></canvas>
+    </div>
+
+    <span id="acStrengthMonitorFoldButton"></span>
+    Strength (Autocorrelation): <span id="measuredAcStrengthText">---</span><br>
+    <div id="acStrengthMonitor">
+        <canvas id="acStrengthChart" width="600" height="300"></canvas>
     </div>
 
     <!-- Inspector -->

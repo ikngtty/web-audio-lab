@@ -3,7 +3,11 @@ import { Foldable } from "./lib/components/Foldable.js";
 import { TimeSeriesChartEditor } from "./lib/components/TimeSeriesChartEditor.js";
 import { StateSelection } from "./lib/states/StateSelection.js";
 import { StateTimeSeries } from "./lib/states/StateTimeSeries.js";
-import { analyzeCurrentSound, repeatFor } from "./lib/util.js";
+import {
+  analyzeSoundUsingAutocorrelation,
+  analyzeSoundUsingFft,
+  repeatFor,
+} from "./lib/util.js";
 
 //
 // DOMs
@@ -34,18 +38,36 @@ const measureButton = document.getElementById("measureButton");
 const measureAndPlayFileButton = document.getElementById(
   "measureAndPlayFileButton"
 );
-const pitchMonitorFoldButton = document.getElementById(
-  "pitchMonitorFoldButton"
+
+const fftPitchMonitorFoldButton = document.getElementById(
+  "fftPitchMonitorFoldButton"
 );
-const pitchMonitor = document.getElementById("pitchMonitor");
-const measuredPitchText = document.getElementById("measuredPitchText");
-const pitchChart = document.getElementById("pitchChart");
-const strengthMonitorFoldButton = document.getElementById(
-  "strengthMonitorFoldButton"
+const measuredFftPitchText = document.getElementById("measuredFftPitchText");
+const fftPitchMonitor = document.getElementById("fftPitchMonitor");
+const fftPitchChart = document.getElementById("fftPitchChart");
+const fftStrengthMonitorFoldButton = document.getElementById(
+  "fftStrengthMonitorFoldButton"
 );
-const strengthMonitor = document.getElementById("strengthMonitor");
-const measuredStrengthText = document.getElementById("measuredStrengthText");
-const strengthChart = document.getElementById("strengthChart");
+const measuredFftStrengthText = document.getElementById(
+  "measuredFftStrengthText"
+);
+const fftStrengthMonitor = document.getElementById("fftStrengthMonitor");
+const fftStrengthChart = document.getElementById("fftStrengthChart");
+
+const acPitchMonitorFoldButton = document.getElementById(
+  "acPitchMonitorFoldButton"
+);
+const measuredAcPitchText = document.getElementById("measuredAcPitchText");
+const acPitchMonitor = document.getElementById("acPitchMonitor");
+const acPitchChart = document.getElementById("acPitchChart");
+const acStrengthMonitorFoldButton = document.getElementById(
+  "acStrengthMonitorFoldButton"
+);
+const measuredAcStrengthText = document.getElementById(
+  "measuredAcStrengthText"
+);
+const acStrengthMonitor = document.getElementById("acStrengthMonitor");
+const acStrengthChart = document.getElementById("acStrengthChart");
 
 // Inspector
 
@@ -68,14 +90,27 @@ let micStreamNode;
 
 // Components
 
-const pitchMonitorFoldable = new Foldable(pitchMonitor, pitchMonitorFoldButton);
-const strengthMonitorFoldable = new Foldable(
-  strengthMonitor,
-  strengthMonitorFoldButton
+const fftPitchMonitorFoldable = new Foldable(
+  fftPitchMonitor,
+  fftPitchMonitorFoldButton
 );
+const fftPitchChartEditor = new TimeSeriesChartEditor(fftPitchChart, 1200);
+const fftStrengthMonitorFoldable = new Foldable(
+  fftStrengthMonitor,
+  fftStrengthMonitorFoldButton
+);
+const fftStrengthChartEditor = new TimeSeriesChartEditor(fftStrengthChart, 255);
 
-const pitchChartEditor = new TimeSeriesChartEditor(pitchChart, 1200);
-const strengthChartEditor = new TimeSeriesChartEditor(strengthChart, 255);
+const acPitchMonitorFoldable = new Foldable(
+  acPitchMonitor,
+  acPitchMonitorFoldButton
+);
+const acPitchChartEditor = new TimeSeriesChartEditor(acPitchChart, 1200);
+const acStrengthMonitorFoldable = new Foldable(
+  acStrengthMonitor,
+  acStrengthMonitorFoldButton
+);
+const acStrengthChartEditor = new TimeSeriesChartEditor(acStrengthChart, 255);
 
 const frequencyDataOfSelectedSoundChartEditor = new ArrayChartEditor(
   frequencyDataOfSelectedSoundChart,
@@ -95,42 +130,66 @@ const stateSoundIndexSelection = new StateSelection();
 
 stateMeasurements.addEventListener("began", (event) => {
   const { estimatedDuration } = event.detail;
-  pitchChartEditor.begin(estimatedDuration);
-  strengthChartEditor.begin(estimatedDuration);
+
+  fftPitchChartEditor.begin(estimatedDuration);
+  fftStrengthChartEditor.begin(estimatedDuration);
+
+  acPitchChartEditor.begin(estimatedDuration);
+  acStrengthChartEditor.begin(estimatedDuration);
 });
 stateMeasurements.addEventListener("dataPointAdded", (event) => {
   const { dataPoint } = event.detail;
   const { elapsedTime, data } = dataPoint;
-  const { pitch, strength } = data;
+  const { fft, ac } = data;
 
-  pitchChartEditor.drawPoint(elapsedTime, pitch);
-  measuredPitchText.textContent = pitch.toString();
-  strengthChartEditor.drawPoint(elapsedTime, strength);
-  measuredStrengthText.textContent = strength.toString();
+  fftPitchChartEditor.drawPoint(elapsedTime, fft.pitch);
+  measuredFftPitchText.textContent = fft.pitch.toString();
+  fftStrengthChartEditor.drawPoint(elapsedTime, fft.strength);
+  measuredFftStrengthText.textContent = fft.strength.toString();
+
+  acPitchChartEditor.drawPoint(elapsedTime, ac.pitch);
+  measuredAcPitchText.textContent = ac.pitch.toString();
+  acStrengthChartEditor.drawPoint(elapsedTime, ac.strength);
+  measuredAcStrengthText.textContent = ac.strength.toString();
 });
 stateMeasurements.addEventListener("ended", (event) => {
   // const { elapsedTime } = event.detail;
-  pitchChartEditor.end();
-  strengthChartEditor.end();
+
+  fftPitchChartEditor.end();
+  fftStrengthChartEditor.end();
+
+  acPitchChartEditor.end();
+  acStrengthChartEditor.end();
 });
 stateMeasurements.addEventListener("cleared", () => {
-  pitchChartEditor.clear();
-  measuredPitchText.textContent = "";
-  strengthChartEditor.clear();
-  measuredStrengthText.textContent = "";
+  fftPitchChartEditor.clear();
+  measuredFftPitchText.textContent = "";
+  fftStrengthChartEditor.clear();
+  measuredFftStrengthText.textContent = "";
+
+  acPitchChartEditor.clear();
+  measuredAcPitchText.textContent = "";
+  acStrengthChartEditor.clear();
+  measuredAcStrengthText.textContent = "";
 });
 
 stateSoundIndexSelection.addEventListener("valueChanged", (event) => {
   const { value: soundIndex } = event.detail;
   const dataPoint = stateMeasurements.dataPoints[soundIndex];
   const { elapsedTime, data } = dataPoint;
-  const { frequencyData, pitch, strength } = data;
+  const { fft, ac } = data;
 
-  frequencyDataOfSelectedSoundChartEditor.draw(frequencyData);
-  pitchChartEditor.selectPoint(elapsedTime, pitch);
-  measuredPitchText.textContent = pitch.toString();
-  strengthChartEditor.selectPoint(elapsedTime, strength);
-  measuredStrengthText.textContent = strength.toString();
+  frequencyDataOfSelectedSoundChartEditor.draw(fft.frequencyData);
+
+  fftPitchChartEditor.selectPoint(elapsedTime, fft.pitch);
+  measuredFftPitchText.textContent = fft.pitch.toString();
+  fftStrengthChartEditor.selectPoint(elapsedTime, fft.strength);
+  measuredFftStrengthText.textContent = fft.strength.toString();
+
+  acPitchChartEditor.selectPoint(elapsedTime, ac.pitch);
+  measuredAcPitchText.textContent = ac.pitch.toString();
+  acStrengthChartEditor.selectPoint(elapsedTime, ac.strength);
+  measuredAcStrengthText.textContent = ac.strength.toString();
 });
 
 // Audio inputs
@@ -213,8 +272,12 @@ measureButton.addEventListener("click", async () => {
   stateMeasurements.begin(measureTime);
 
   await repeatFor(measureTime, (elapsedTime) => {
-    const analysisResult = analyzeCurrentSound(audioAnalyserNode);
-    stateMeasurements.addDataPoint(elapsedTime, analysisResult);
+    const fftAnalysis = analyzeSoundUsingFft(audioAnalyserNode);
+    const acAnalysis = analyzeSoundUsingAutocorrelation(audioAnalyserNode);
+    stateMeasurements.addDataPoint(elapsedTime, {
+      fft: fftAnalysis,
+      ac: acAnalysis,
+    });
   });
 
   stateMeasurements.end(measureTime); // TODO: Use the actual end time.
