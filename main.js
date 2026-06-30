@@ -26,45 +26,45 @@ let audioElement; // dynamically created
 const minDecibelsInput = document.getElementById("minDecibelsInput");
 const maxDecibelsInput = document.getElementById("maxDecibelsInput");
 const smoothingTimeConstantInput = document.getElementById(
-  "smoothingTimeConstantInput"
+  "smoothingTimeConstantInput",
 );
 const setRecommendedValueButton = document.getElementById(
-  "setRecommendedValueButton"
+  "setRecommendedValueButton",
 );
 
 // Monitor
 
 const measureButton = document.getElementById("measureButton");
 const measureAndPlayFileButton = document.getElementById(
-  "measureAndPlayFileButton"
+  "measureAndPlayFileButton",
 );
 
 const fftPitchMonitorFoldButton = document.getElementById(
-  "fftPitchMonitorFoldButton"
+  "fftPitchMonitorFoldButton",
 );
 const measuredFftPitchText = document.getElementById("measuredFftPitchText");
 const fftPitchMonitor = document.getElementById("fftPitchMonitor");
 const fftPitchChart = document.getElementById("fftPitchChart");
 const fftStrengthMonitorFoldButton = document.getElementById(
-  "fftStrengthMonitorFoldButton"
+  "fftStrengthMonitorFoldButton",
 );
 const measuredFftStrengthText = document.getElementById(
-  "measuredFftStrengthText"
+  "measuredFftStrengthText",
 );
 const fftStrengthMonitor = document.getElementById("fftStrengthMonitor");
 const fftStrengthChart = document.getElementById("fftStrengthChart");
 
 const acPitchMonitorFoldButton = document.getElementById(
-  "acPitchMonitorFoldButton"
+  "acPitchMonitorFoldButton",
 );
 const measuredAcPitchText = document.getElementById("measuredAcPitchText");
 const acPitchMonitor = document.getElementById("acPitchMonitor");
 const acPitchChart = document.getElementById("acPitchChart");
 const acStrengthMonitorFoldButton = document.getElementById(
-  "acStrengthMonitorFoldButton"
+  "acStrengthMonitorFoldButton",
 );
 const measuredAcStrengthText = document.getElementById(
-  "measuredAcStrengthText"
+  "measuredAcStrengthText",
 );
 const acStrengthMonitor = document.getElementById("acStrengthMonitor");
 const acStrengthChart = document.getElementById("acStrengthChart");
@@ -72,11 +72,11 @@ const acStrengthChart = document.getElementById("acStrengthChart");
 // Inspector
 
 const selectedSoundIndexInput = document.getElementById(
-  "selectedSoundIndexInput"
+  "selectedSoundIndexInput",
 );
 const selectSoundButton = document.getElementById("selectSoundButton");
 const frequencyDataOfSelectedSoundChart = document.getElementById(
-  "frequencyDataOfSelectedSoundChart"
+  "frequencyDataOfSelectedSoundChart",
 );
 
 //
@@ -92,29 +92,29 @@ let micStreamNode;
 
 const fftPitchMonitorFoldable = new Foldable(
   fftPitchMonitor,
-  fftPitchMonitorFoldButton
+  fftPitchMonitorFoldButton,
 );
 const fftPitchChartEditor = new TimeSeriesChartEditor(fftPitchChart, 1200);
 const fftStrengthMonitorFoldable = new Foldable(
   fftStrengthMonitor,
-  fftStrengthMonitorFoldButton
+  fftStrengthMonitorFoldButton,
 );
 const fftStrengthChartEditor = new TimeSeriesChartEditor(fftStrengthChart, 255);
 
 const acPitchMonitorFoldable = new Foldable(
   acPitchMonitor,
-  acPitchMonitorFoldButton
+  acPitchMonitorFoldButton,
 );
 const acPitchChartEditor = new TimeSeriesChartEditor(acPitchChart, 1200);
 const acStrengthMonitorFoldable = new Foldable(
   acStrengthMonitor,
-  acStrengthMonitorFoldButton
+  acStrengthMonitorFoldButton,
 );
 const acStrengthChartEditor = new TimeSeriesChartEditor(acStrengthChart, 255);
 
 const frequencyDataOfSelectedSoundChartEditor = new ArrayChartEditor(
   frequencyDataOfSelectedSoundChart,
-  255
+  255,
 );
 
 // States
@@ -315,6 +315,6 @@ function reflectSettings(audioAnalyserNode) {
   audioAnalyserNode.minDecibels = Number(minDecibelsInput.value);
   audioAnalyserNode.maxDecibels = Number(maxDecibelsInput.value);
   audioAnalyserNode.smoothingTimeConstant = Number(
-    smoothingTimeConstantInput.value
+    smoothingTimeConstantInput.value,
   );
 }
