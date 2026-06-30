@@ -1,71 +1,80 @@
 <html>
-
-<head>
+  <head>
     <style>
-        canvas {
-            border: 1px solid;
-        }
+      canvas {
+        border: 1px solid;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <!-- Audio inputs -->
     <button id="micOnButton">mic on</button>
     <button id="oscillatorOnButton">oscillator on</button>
-    <input type="file" id="audioFileInput">
+    <input type="file" id="audioFileInput" />
     <span id="audioArea"></span>
-    <hr>
+    <hr />
 
     <!-- Analyzer settings -->
     minDecibels:
-    <input type="number" id="minDecibelsInput" value="-100" step="10">
+    <input type="number" id="minDecibelsInput" value="-100" step="10" />
     maxDecibles:
-    <input type="number" id="maxDecibelsInput" value="-30" step="10">
-    <br>
+    <input type="number" id="maxDecibelsInput" value="-30" step="10" />
+    <br />
     smoothingTimeConstant:
-    <input type="number" id="smoothingTimeConstantInput" value="0.8" step="0.1">
-    <br>
+    <input
+      type="number"
+      id="smoothingTimeConstantInput"
+      value="0.8"
+      step="0.1"
+    />
+    <br />
     <button id="setRecommendedValueButton">set recommended value</button>
-    <hr>
+    <hr />
 
     <!-- Monitor -->
     <button id="measureButton">measure</button>
     <button id="measureAndPlayFileButton">measure and play the file</button>
-    <br>
+    <br />
 
     <span id="fftPitchMonitorFoldButton"></span>
-    Pitch (FFT): <span id="measuredFftPitchText">---</span> Hz<br>
+    Pitch (FFT): <span id="measuredFftPitchText">---</span> Hz<br />
     <div id="fftPitchMonitor">
-        <canvas id="fftPitchChart" width="600" height="300"></canvas>
+      <canvas id="fftPitchChart" width="600" height="300"></canvas>
     </div>
 
     <span id="fftStrengthMonitorFoldButton"></span>
-    Strength (FFT): <span id="measuredFftStrengthText">---</span><br>
+    Strength (FFT): <span id="measuredFftStrengthText">---</span><br />
     <div id="fftStrengthMonitor">
-        <canvas id="fftStrengthChart" width="600" height="300"></canvas>
+      <canvas id="fftStrengthChart" width="600" height="300"></canvas>
     </div>
 
     <span id="acPitchMonitorFoldButton"></span>
-    Pitch (Autocorrelation): <span id="measuredAcPitchText">---</span> Hz<br>
+    Pitch (Autocorrelation): <span id="measuredAcPitchText">---</span> Hz<br />
     <div id="acPitchMonitor">
-        <canvas id="acPitchChart" width="600" height="300"></canvas>
+      <canvas id="acPitchChart" width="600" height="300"></canvas>
     </div>
 
     <span id="acStrengthMonitorFoldButton"></span>
-    Strength (Autocorrelation): <span id="measuredAcStrengthText">---</span><br>
+    Strength (Autocorrelation): <span id="measuredAcStrengthText">---</span
+    ><br />
     <div id="acStrengthMonitor">
-        <canvas id="acStrengthChart" width="600" height="300"></canvas>
+      <canvas id="acStrengthChart" width="600" height="300"></canvas>
     </div>
 
     <!-- Inspector -->
     Sound Index:
-    <input type="number" id="selectedSoundIndexInput" value="0" step="1">
+    <input type="number" id="selectedSoundIndexInput" value="0" step="1" />
     <button id="selectSoundButton">select</button>
-    <br>
+    <br />
 
-    <canvas id="frequencyDataOfSelectedSoundChart" width="600" height="300"></canvas><br>
-</body>
+    <canvas
+      id="frequencyDataOfSelectedSoundChart"
+      width="600"
+      height="300"
+    ></canvas
+    ><br />
+  </body>
 
-<script type="module" src="main.js"></script>
-
+  <script type="module" src="main.js"></script>
 </html>
